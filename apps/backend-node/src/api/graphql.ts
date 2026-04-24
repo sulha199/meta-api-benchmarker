@@ -1,4 +1,3 @@
-// apps/backend-node/api/graphql.ts
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 
