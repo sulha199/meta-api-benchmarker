@@ -1,0 +1,36 @@
+name: Supabase Database Migration
+
+# Trigger this workflow only when code is pushed to the main branch
+# AND only if there are changes inside the migrations folder
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/backend-supabase/supabase/migrations/**'
+
+jobs:
+  deploy-migrations:
+    name: Deploy to Supabase
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Install Supabase CLI
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Step 3: Run the migration push command
+      # This requires the secrets we stored in GitHub
+      - name: Push Database Migrations
+        working-directory: ./apps/backend-supabase
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
