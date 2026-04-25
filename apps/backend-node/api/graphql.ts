@@ -1,0 +1,103 @@
+// apps/backend-node/api/graphql.ts
+import { ApolloServer } from '@apollo/server';
+import { startServerAndCreateNextHandler } from '@as-integrations/next';
+import { db } from '../src/db';
+import { visitors, benchmarks } from '../src/db/schema';
+import { eq } from 'drizzle-orm';
+
+/**
+ * GraphQL Type Definitions.
+ * These act as the contract between our React Frontend and Node.js Backend.
+ */
+const typeDefs = `
+  type Visitor {
+    id: ID!
+    rawEmail: String
+    createdAt: String!
+  }
+
+  type Benchmark {
+    id: ID!
+    visitorId: ID!
+    environment: String!
+    payloadSizeKb: Int!
+    totalRoundtripMs: Int
+    backendParseMs: Int
+    backendDbInsertMs: Int
+    createdAt: String!
+  }
+
+  type Query {
+    ping: String!
+    getBenchmarks(visitorId: ID!): [Benchmark!]!
+  }
+
+  type Mutation {
+    registerVisitor(rawEmail: String): Visitor!
+    submitBenchmark(
+      visitorId: ID!
+      environment: String!
+      payloadSizeKb: Int!
+      totalRoundtripMs: Int
+      backendParseMs: Int
+      backendDbInsertMs: Int
+    ): Benchmark!
+  }
+`;
+
+/**
+ * GraphQL Resolvers.
+ * The actual implementation logic that executes database operations via Drizzle ORM.
+ */
+const resolvers = {
+  Query: {
+    // Used for the warm-up script we discussed earlier
+    ping: () => 'Pong! Competitor A is ready.',
+
+    // Fetch benchmark history for a specific visitor
+    getBenchmarks: async (_: any, args: { visitorId: string }) => {
+      return await db.query.benchmarks.findMany({
+        where: eq(benchmarks.visitorId, args.visitorId),
+        orderBy: (benchmarks, { desc }) => [desc(benchmarks.createdAt)],
+      });
+    },
+  },
+
+  Mutation: {
+    // Register a new visitor session
+    registerVisitor: async (_: any, args: { rawEmail?: string }) => {
+      const result = await db.insert(visitors)
+        .values({ rawEmail: args.rawEmail })
+        .returning();
+
+      return result[0];
+    },
+
+    // Record the race result
+    submitBenchmark: async (_: any, args: any) => {
+      const result = await db.insert(benchmarks)
+        .values({
+          visitorId: args.visitorId,
+          environment: args.environment,
+          payloadSizeKb: args.payloadSizeKb,
+          totalRoundtripMs: args.totalRoundtripMs,
+          backendParseMs: args.backendParseMs,
+          backendDbInsertMs: args.backendDbInsertMs,
+        })
+        .returning();
+
+      return result[0];
+    },
+  },
+};
+
+// Initialize the Apollo Server
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  // Enable introspection to allow GraphQL Playground/Sandbox to explore the API
+  introspection: true
+});
+
+// Export the serverless handler
+export default startServerAndCreateNextHandler(server);
