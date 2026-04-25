@@ -10,7 +10,7 @@
     "db:studio": "drizzle-kit studio",
     "db:sync": "node scripts/sync-supabase.js",
     "db:migrate": "pnpm db:generate && pnpm db:sync",
-    "dev": "vercel dev",
+    "start": "cd ../.. && vercel dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -28,6 +28,7 @@
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vercel": "^52.0.0"
   }
 }
