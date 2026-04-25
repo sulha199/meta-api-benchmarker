@@ -99,5 +99,18 @@ const server = new ApolloServer({
   introspection: true
 });
 
-// Export the serverless handler
-export default startServerAndCreateNextHandler(server);
+// 1. Create the default Apollo handler
+const apolloHandler = startServerAndCreateNextHandler(server);
+
+// 2. Create a custom wrapper to handle CORS Preflight requests
+export default async function handler(req: any, res: any) {
+  // Intercept the Preflight Request from the browser (OPTIONS)
+  if (req.method === 'OPTIONS') {
+    // Return a 200 OK response so the browser allows the subsequent POST request
+    res.status(200).end();
+    return;
+  }
+
+  // If it's not an OPTIONS request (e.g., POST/GET), forward it to the Apollo Server
+  return apolloHandler(req, res);
+}
