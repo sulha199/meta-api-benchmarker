@@ -38,6 +38,7 @@ const typeDefs = `
       visitorId: ID!
       environment: String!
       payloadSizeKb: Int!
+      dummyPayload: String
       totalRoundtripMs: Int
       backendParseMs: Int
       backendDbInsertMs: Int
