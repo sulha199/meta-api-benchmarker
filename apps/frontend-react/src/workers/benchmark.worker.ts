@@ -1,24 +1,42 @@
+import { NODE_GRAPHQL_URL, NODE_HEADERS, SUPABASE_GRAPHQL_ENDPOINT, SUPABASE_HEADERS, type Competitor } from "../config/constants";
+
+/**
+ * Define the structure of the message data for type safety within the worker
+ */
+export type BenchmarkMessage = {
+  competitor: Competitor;
+  visitorId: string;
+  requestCount: number;
+  payloadSizeKb: number;
+}
+
+export type BenchmarkResult = {
+  success: boolean;
+  /** Duration in miliseconds */
+  duration: number;
+}
+
 /**
  * Web Worker for generating load and measuring API performance.
  */
-self.onmessage = async (event: MessageEvent) => {
+self.onmessage = async (event: MessageEvent<BenchmarkMessage>) => {
   const { competitor, visitorId, requestCount, payloadSizeKb } = event.data;
 
   // 1. Generate the dummy payload
   // In JavaScript, a standard ASCII character takes 1 byte.
   // 1 KB = 1024 bytes. We repeat the character 'A' to reach the desired KB size.
   const dummyPayload = "A".repeat(payloadSizeKb * 1024);
-  const results = [];
+  const results: BenchmarkResult[] = [];
 
   for (let i = 0; i < requestCount; i++) {
     const startTime = performance.now();
 
     try {
-      if (competitor === 'NODE_JS') {
+      if (competitor === 'Node.js') {
         // Send request to Vercel Serverless
-        const response = await fetch('http://localhost:3000/api/graphql', {
+        const response = await fetch(NODE_GRAPHQL_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: NODE_HEADERS,
           body: JSON.stringify({
             query: `
               mutation SubmitBenchmark(
@@ -53,15 +71,11 @@ self.onmessage = async (event: MessageEvent) => {
 
         // Wait for the JSON response to ensure the request is completely finished
         await response.json();
-      } else if (competitor === 'SUPABASE') {
+      } else if (competitor === 'Supabase') {
         // Send request directly to Supabase GraphQL API
-        const response = await fetch('https://tkdptyyohhgouonivfau.supabase.co/graphql/v1', {
+        const response = await fetch(SUPABASE_GRAPHQL_ENDPOINT, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrZHB0eXlvaGhnb3Vvbml2ZmF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MTczNjYsImV4cCI6MjA5MjQ5MzM2Nn0.Ceieg7zLYuKt26sVoNAgT0q6QuB5CQ1gh0boW_Uylss',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrZHB0eXlvaGhnb3Vvbml2ZmF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MTczNjYsImV4cCI6MjA5MjQ5MzM2Nn0.Ceieg7zLYuKt26sVoNAgT0q6QuB5CQ1gh0boW_Uylss'
-          },
+          headers: SUPABASE_HEADERS,
           body: JSON.stringify({
             query: `
               mutation InsertBenchmark(
