@@ -54,7 +54,44 @@ self.onmessage = async (event: MessageEvent) => {
         // Wait for the JSON response to ensure the request is completely finished
         await response.json();
       } else if (competitor === 'SUPABASE') {
-        // Placeholder for Supabase target
+        // Send request directly to Supabase GraphQL API
+        const response = await fetch('https://tkdptyyohhgouonivfau.supabase.co/graphql/v1', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrZHB0eXlvaGhnb3Vvbml2ZmF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MTczNjYsImV4cCI6MjA5MjQ5MzM2Nn0.Ceieg7zLYuKt26sVoNAgT0q6QuB5CQ1gh0boW_Uylss',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrZHB0eXlvaGhnb3Vvbml2ZmF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MTczNjYsImV4cCI6MjA5MjQ5MzM2Nn0.Ceieg7zLYuKt26sVoNAgT0q6QuB5CQ1gh0boW_Uylss'
+          },
+          body: JSON.stringify({
+            query: `
+              mutation InsertBenchmark(
+                $visitorId: UUID!,
+                $environment: environment!,
+                $payloadSizeKb: Int!,
+                $totalRoundtripMs: Int
+              ) {
+                insertIntobenchmarksCollection(objects: [{
+                  visitor_id: $visitorId,
+                  environment: $environment,
+                  payload_size_kb: $payloadSizeKb,
+                  total_roundtrip_ms: $totalRoundtripMs
+                }]) {
+                  records {
+                    id
+                  }
+                }
+              }
+            `,
+            variables: {
+              visitorId: visitorId,
+              environment: "Supabase",
+              payloadSizeKb: payloadSizeKb,
+              totalRoundtripMs: 0
+            }
+          })
+        });
+
+        await response.json();
       }
 
       // Calculate the total time taken from request start to response parsing
