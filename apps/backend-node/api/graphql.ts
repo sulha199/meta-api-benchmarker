@@ -33,7 +33,7 @@ const typeDefs = `
   }
 
   type Mutation {
-    registerVisitor(rawEmail: String): Visitor!
+    registerVisitor(id: ID!, rawEmail: String): Visitor!
     submitBenchmark(
       visitorId: ID!
       environment: String!
@@ -66,9 +66,12 @@ const resolvers = {
 
   Mutation: {
     // Register a new visitor session
-    registerVisitor: async (_: any, args: { rawEmail?: string }) => {
+    registerVisitor: async (_: any, args: { id: string, rawEmail?: string }) => {
       const result = await db.insert(visitors)
-        .values({ rawEmail: args.rawEmail })
+        .values({
+          id: args.id, // Explicitly use the ID from React
+          rawEmail: args.rawEmail
+        })
         .returning();
 
       return result[0];
