@@ -60,6 +60,9 @@ importers:
 
   apps/frontend-react:
     dependencies:
+      '@meta/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
       react:
         specifier: ^19.2.5
         version: 19.2.5
@@ -152,6 +155,12 @@ importers:
       typescript-eslint:
         specifier: ^8.50.0
         version: 8.50.0(eslint@9.39.1)(typescript@5.9.2)
+
+  packages/storage:
+    devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.2
 
   packages/typescript-config: {}
 
