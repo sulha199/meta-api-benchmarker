@@ -168,6 +168,22 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  packages/domain-graphql-ast:
+    dependencies:
+      '@repo/db-core':
+        specifier: workspace:*
+        version: link:../db-core
+      graphql:
+        specifier: ^16.8.1
+        version: 16.13.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.11.0
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.2
+
   packages/domain-models:
     dependencies:
       '@meta/validation-core':
@@ -8285,7 +8301,7 @@ snapshots:
 
   '@types/set-cookie-parser@2.4.10':
     dependencies:
-      '@types/node': 24.12.2
+      '@types/node': 20.11.0
 
   '@types/statuses@2.0.6': {}
 
