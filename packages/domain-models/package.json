@@ -4,7 +4,7 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@meta/validation-engine": "workspace:*",
+    "@meta/validation-core": "workspace:*",
     "zod": "^3.22.0"
   },
   "devDependencies": {

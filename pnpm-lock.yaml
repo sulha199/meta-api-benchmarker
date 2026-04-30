@@ -155,11 +155,24 @@ importers:
         specifier: ^8.0.10
         version: 8.0.10(@types/node@24.12.2)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)
 
+  packages/db-core:
+    dependencies:
+      '@meta/validation-core':
+        specifier: workspace:*
+        version: link:../validation-core
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.11.0
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/domain-models:
     dependencies:
-      '@meta/validation-engine':
+      '@meta/validation-core':
         specifier: workspace:*
-        version: link:../validation-engine
+        version: link:../validation-core
       zod:
         specifier: ^3.22.0
         version: 3.25.76
@@ -203,6 +216,25 @@ importers:
       typescript-eslint:
         specifier: ^8.50.0
         version: 8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2)
+
+  packages/schema-drizzle:
+    dependencies:
+      '@repo/db-core':
+        specifier: workspace:*
+        version: link:../db-core
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@neondatabase/serverless@1.1.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.11.0
+      drizzle-kit:
+        specifier: ^0.31.10
+        version: 0.31.10
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
   packages/storage:
     devDependencies:
@@ -270,11 +302,7 @@ importers:
         specifier: ~6.0.2
         version: 6.0.3
 
-  packages/validation-engine:
-    dependencies:
-      zod:
-        specifier: ^3.22.0
-        version: 3.25.76
+  packages/validation-core:
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
@@ -285,6 +313,28 @@ importers:
       '@types/node':
         specifier: ^22.15.3
         version: 22.15.3
+      eslint:
+        specifier: ^9.39.1
+        version: 9.39.1(jiti@2.6.1)
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
+  packages/validation-zod:
+    dependencies:
+      '@meta/validation-core':
+        specifier: workspace:*
+        version: link:../validation-core
+      zod:
+        specifier: ^3.23.0
+        version: 3.25.76
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
       eslint:
         specifier: ^9.39.1
         version: 9.39.1(jiti@2.6.1)
@@ -6731,6 +6781,11 @@ snapshots:
       eslint: 10.2.1(jiti@2.6.1)
       eslint-visitor-keys: 3.4.3
 
+  '@eslint-community/eslint-utils@4.9.1(eslint@9.39.1(jiti@2.6.1))':
+    dependencies:
+      eslint: 9.39.1(jiti@2.6.1)
+      eslint-visitor-keys: 3.4.3
+
   '@eslint-community/regexpp@4.12.2': {}
 
   '@eslint/config-array@0.21.1':
@@ -6767,7 +6822,7 @@ snapshots:
 
   '@eslint/eslintrc@3.3.1':
     dependencies:
-      ajv: 6.12.6
+      ajv: 6.15.0
       debug: 4.4.3
       espree: 10.4.0
       globals: 14.0.0
@@ -8385,7 +8440,7 @@ snapshots:
 
   '@typescript-eslint/utils@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2)':
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.0(eslint@9.39.1(jiti@2.6.1))
+      '@eslint-community/eslint-utils': 4.9.1(eslint@9.39.1(jiti@2.6.1))
       '@typescript-eslint/scope-manager': 8.50.0
       '@typescript-eslint/types': 8.50.0
       '@typescript-eslint/typescript-estree': 8.50.0(typescript@5.9.2)
