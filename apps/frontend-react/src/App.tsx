@@ -1,7 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RootLayout } from "./components/layout/RootLayout";
-import { ApiTopologyPage } from "./pages/ApiTopologyPage";
-import { GraphqlAstPage } from "./pages/GraphqlAstPage";
+import { lazy } from "react";
+
+
+const ApiTopologyPage = lazy(() => import("./pages/ApiTopologyPage"));
+const GraphqlAstPage = lazy(() => import("./pages/GraphqlAstPage")) ;
 
 function App() {
   return (

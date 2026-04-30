@@ -41,3 +41,5 @@ export function GraphqlAstPage() {
     </div>
   );
 }
+
+export default GraphqlAstPage;
