@@ -1,5 +1,8 @@
+import { DataQueryPlan, QueryCriteria } from "../types";
+
 export interface IDatabaseAdapter<
-  TSelect,
+  TEntity extends Record<string, any>,
+  TSelect extends Record<string, any>,
   TInsert,
   TUpdate,
   TRawClient = unknown
@@ -9,4 +12,5 @@ export interface IDatabaseAdapter<
   update(id: string, data: TUpdate): Promise<TSelect>;
   delete(id: string): Promise<boolean>;
   getRawClient(): TRawClient;
+  findMany(query?: QueryCriteria<TSelect>, plan?: DataQueryPlan<TEntity>): Promise<TSelect[]>;
 }

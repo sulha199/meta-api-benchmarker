@@ -1,5 +1,6 @@
+import { QueryCriteria, DataQueryPlan } from '@repo/db-core';
 import type { IDatabaseAdapter } from '@repo/db-core/adapters';
-import { eq } from 'drizzle-orm';
+import { eq, getTableName } from 'drizzle-orm';
 import type { PgDatabase, PgTable, PgColumn } from 'drizzle-orm/pg-core';
 
 export interface DrizzleRawClient<TDb, TTable> {
@@ -12,12 +13,13 @@ export interface DrizzleRawClient<TDb, TTable> {
  * We constrain TTable to be a Drizzle Postgres table that explicitly has an 'id' column.
  */
 export class DrizzleAdapter<
-  TSelect,
+  TEntity extends Record<string, any>,
+  TSelect extends Record<string, any>,
   TInsert,
   TUpdate,
   TDb extends PgDatabase<any, any, any>,
   TTable extends PgTable<any> & { id: PgColumn<any> }
-> implements IDatabaseAdapter<TSelect, TInsert, TUpdate, DrizzleRawClient<TDb, TTable>> {
+> implements IDatabaseAdapter<TEntity, TSelect, TInsert, TUpdate, DrizzleRawClient<TDb, TTable>> {
 
   constructor(
     private readonly db: TDb,
@@ -62,6 +64,48 @@ export class DrizzleAdapter<
       .where(eq(this.table.id, id));
 
     return true;
+  }
+
+  async findMany(query: QueryCriteria = {}, plan?: DataQueryPlan<TEntity>): Promise<TSelect[]> {
+    // 1. Compile the generic DataQueryPlan into Drizzle Relational API syntax
+    const drizzleConfig = this.buildDrizzleConfig(plan || {
+      fields: [],
+    });
+
+    // Note: You would also translate `query.where`, `query.limit`, etc., into Drizzle format here
+    // drizzleConfig.limit = query.limit;
+
+    // 2. Execute! Drizzle will automatically generate the JSON Aggregation SQL
+    return (this.db.query)[
+      getTableName(this.table)
+    ].findMany(drizzleConfig);
+  }
+
+  /**
+    * THE COMPILER: Converts agnostic plan to Drizzle's format.
+    */
+  private buildDrizzleConfig(plan: DataQueryPlan<any>): Record<string, any> {
+    const config: Record<string, any> = {};
+
+    // Map base columns
+    if (plan.fields && plan.fields.length > 0) {
+      config.columns = {};
+      const columnsToSelect = new Set([...plan.fields, 'id']); // Always need ID for relations
+      for (const col of columnsToSelect) config.columns[col] = true;
+    }
+
+    // Map relations natively using Drizzle's `with` syntax!
+    if (plan.relations && Object.keys(plan.relations).length > 0) {
+      config.with = {};
+      for (const [relationName, childPlan] of Object.entries(plan.relations)) {
+        if (childPlan) {
+          // Recursive compilation for deeply nested relations
+          config.with[relationName] = this.buildDrizzleConfig(childPlan);
+        }
+      }
+    }
+
+    return config;
   }
 
   getRawClient(): DrizzleRawClient<TDb, TTable> {

@@ -9,10 +9,11 @@
   },
   "dependencies": {
     "graphql": "^16.8.1",
-    "@repo/db-core": "workspace:*"
+    "@repo/db-core": "workspace:*",
+    "@repo/graphql-utils": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
+    "typescript": "^6.0.3",
     "@types/node": "^20.0.0"
   }
 }

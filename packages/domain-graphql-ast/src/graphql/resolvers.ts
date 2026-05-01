@@ -1,4 +1,4 @@
-import { getRequestedFields } from '../utils/astParser';
+import { buildDataQueryPlan, getRequestedFields } from '@repo/graphql-utils';
 import type { IArticleRepository } from '../repositories/IArticleRepository';
 
 // The Context Contract that apps/backend-node must fulfill
@@ -41,17 +41,19 @@ export const resolvers = {
     getArticlesOptimized: async (_: any, { dbType }: { dbType: string }, context: GraphQLContext, info: any) => {
       const startMs = performance.now();
 
-      // 1. Look into the future: Parse the AST
-      const requestedFields = getRequestedFields(info);
+      // 1. Parse the AST and build the universal plan!
+      const astResult = getRequestedFields(info);
+      const articleAst = astResult.data?.children || {};
 
-      // 2. Safely traverse the new strictly-typed 'children' structure
-      const wantsComments = !!requestedFields.data?.children?.comments;
+      // We explicitly pass the expected type to enforce strict query boundaries
+      const queryPlan = buildDataQueryPlan<any>(articleAst);
 
+      // 2. Resolve the repository
       const repository = dbType === 'MONGO' ? context.repositories.mongo : context.repositories.postgres;
       if (!repository) throw new Error(`${dbType} repository is not initialized.`);
 
-      // 3. Execute the optimized fetch based on AST knowledge
-      const data = await repository.getArticlesOptimized(wantsComments);
+      // 3. Execute!
+      const data = await repository.getArticlesOptimized(queryPlan)
 
       const latencyMs = Math.round(performance.now() - startMs);
       const payloadSizeKb = calculatePayloadSizeKb(data);

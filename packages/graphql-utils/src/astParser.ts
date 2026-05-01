@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo, FieldNode, SelectionSetNode } from 'graphql';
+import type { GraphQLResolveInfo, FieldNode, SelectionSetNode } from 'graphql';
 
 export type ParseSelectionSetResult = {
   [fieldName: string]: {
