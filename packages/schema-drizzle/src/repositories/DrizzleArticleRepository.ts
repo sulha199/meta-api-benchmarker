@@ -5,7 +5,7 @@ import type {
 
 // We import our specific database schemas
 import { astArticles } from '../schema/ast';
-import { AbstractDrizzleRepository } from './AbstractDrizzleRepository';
+import { AbstractDrizzlePgRepository } from './AbstractDrizzleRepository';
 import { PgDatabase, PgTable, PgColumn } from 'drizzle-orm/pg-core';
 import { DataQueryPlan } from '@repo/db-core';
 
@@ -15,15 +15,19 @@ type DbArticleInsert = typeof astArticles.$inferInsert;
 type DbArticleUpdate = Partial<typeof astArticles.$inferInsert>;
 
 export class DrizzleArticleRepository
-  extends AbstractDrizzleRepository<
+  extends AbstractDrizzlePgRepository<
     ArticleEntity,
     DbArticleSelect,
     DbArticleInsert,
     DbArticleUpdate,
     PgDatabase<any, any, any>,
-    PgTable<any> & { id: PgColumn<any>}>
+    PgTable<any> & { id: PgColumn<any> },
+    'id'
+  >
   implements IArticleRepository
 {
+  protected columnIdName: 'id' = 'id';
+
   constructor(
     private db: PgDatabase<any, any, any>, // The raw Drizzle postgres client
   ) {

@@ -26,14 +26,9 @@ export class DrizzleAdapter<
     private readonly table: TTable
   ) {}
 
-  async findById(id: string): Promise<TSelect | null> {
-    // TypeScript now fully understands db.select(), table, and table.id!
-    const result = await this.db
-      .select()
-      .from(this.table as any)
-      .where(eq(this.table.id, id));
-
-    return (result[0] as unknown as TSelect) || null;
+  async findById(id: string, plan?: DataQueryPlan<TEntity>): Promise<TSelect | null> {
+    const result = await this.findMany({ where: eq(this.table.id, id) }, plan);
+    return result[0] || null;
   }
 
   async create(data: TInsert): Promise<TSelect> {
