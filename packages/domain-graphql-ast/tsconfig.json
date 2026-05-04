@@ -8,6 +8,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
+    "types": ["node"],
     "declarationMap": true
   },
   "include": ["src"]
