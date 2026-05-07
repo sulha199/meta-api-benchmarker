@@ -1,0 +1,25 @@
+type Comment {
+  id: ID!
+  authorId: String!
+  commentText: String!
+  createdAt: String
+}
+
+type Article {
+  id: ID!
+  title: String!
+  contentBody: String!
+  createdAt: String
+  comments: [Comment!]!
+}
+
+type BenchmarkResult {
+  latencyMs: Int!
+  payloadSizeKb: Float!
+  data: [Article!]!
+}
+
+type Query {
+  getArticlesLazy(dbType: String!): BenchmarkResult!
+  getArticlesOptimized(dbType: String!): BenchmarkResult!
+}

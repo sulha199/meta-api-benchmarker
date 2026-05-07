@@ -1,0 +1,17 @@
+{
+  "name": "@repo/schema-mongo",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "mongoose": "^8.0.0",
+    "@repo/db-core": "workspace:*",
+    "@repo/domain-graphql-ast": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "@types/mongoose": "^5.11.97"
+  }
+}

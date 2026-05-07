@@ -1,13 +1,5 @@
-import { buildDataQueryPlan, getRequestedFields } from '@repo/graphql-utils';
-import type { IArticleRepository } from '../repositories/IArticleRepository';
-
-// The Context Contract that apps/backend-node must fulfill
-export interface GraphQLContext {
-  repositories: {
-    postgres: IArticleRepository;
-    mongo?: IArticleRepository;
-  };
-}
+import { getRequestedFields, buildDataQueryPlan } from '@repo/graphql-utils';
+import type { Resolvers } from './__generated__/resolvers-types';
 
 // Helper utility to calculate payload size in Kilobytes
 const calculatePayloadSizeKb = (data: any) => {
@@ -15,12 +7,12 @@ const calculatePayloadSizeKb = (data: any) => {
   return Math.round(Buffer.byteLength(jsonString, 'utf8') / 1024);
 };
 
-export const resolvers = {
+export const resolvers: Resolvers = {
   Query: {
     /**
      * Scenario 1: The Lazy Fetch (N+1 Problem)
      */
-    getArticlesLazy: async (_: any, { dbType }: { dbType: string }, context: GraphQLContext) => {
+    getArticlesLazy: async (_, { dbType }, context, info) => {
       const startMs = performance.now();
 
       const repository = dbType === 'MONGO' ? context.repositories.mongo : context.repositories.postgres;
@@ -38,7 +30,7 @@ export const resolvers = {
     /**
      * Scenario 2: The AST Optimized Fetch
      */
-    getArticlesOptimized: async (_: any, { dbType }: { dbType: string }, context: GraphQLContext, info: any) => {
+    getArticlesOptimized: async (_, { dbType }, context, info) => {
       const startMs = performance.now();
 
       // 1. Parse the AST and build the universal plan!

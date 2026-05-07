@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ZodModelAdapter } from '@meta/validation-engine';
+import { ZodModelAdapter } from '@repo/validation-zod';
 
 // 1. Define the Business Schema
 export const BenchmarkSchema = z.object({

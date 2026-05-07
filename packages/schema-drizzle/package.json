@@ -13,6 +13,7 @@
   "dependencies": {
     "@repo/db-core": "workspace:*",
     "@repo/domain-graphql-ast": "workspace:*",
+    "@repo/domain-visitors": "workspace:*",
     "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {

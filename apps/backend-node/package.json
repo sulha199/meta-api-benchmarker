@@ -17,6 +17,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@repo/domain-graphql-ast": "workspace:*",
+    "@repo/domain-visitors": "workspace:*",
+    "@repo/schema-drizzle": "workspace:*",
+    "@repo/schema-mongo": "workspace:*",
     "@apollo/server": "^5.5.0",
     "@as-integrations/next": "^4.1.0",
     "@neondatabase/serverless": "^1.1.0",

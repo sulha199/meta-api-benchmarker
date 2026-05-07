@@ -7,13 +7,19 @@
     "./graphql": "./src/graphql/index.ts",
     "./models": "./src/models/index.ts"
   },
+  "scripts": {
+    "generate": "graphql-codegen"
+  },
   "dependencies": {
-    "graphql": "^16.8.1",
     "@repo/db-core": "workspace:*",
-    "@repo/graphql-utils": "workspace:*"
+    "@repo/graphql-utils": "workspace:*",
+    "graphql": "^16.8.1"
   },
   "devDependencies": {
-    "typescript": "^6.0.3",
-    "@types/node": "^20.0.0"
+    "@graphql-codegen/cli": "^7.0.0",
+    "@graphql-codegen/typescript": "^6.0.0",
+    "@graphql-codegen/typescript-resolvers": "^6.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^6.0.3"
   }
 }
