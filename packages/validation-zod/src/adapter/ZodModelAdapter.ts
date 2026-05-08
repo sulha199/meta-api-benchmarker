@@ -1,8 +1,7 @@
-// packages/shared-models/src/core/ZodModelAdapter.ts
-import { AbstractDataModel, ValidationResult } from '@meta/validation-core';
+import { AbstractStatefulDataModel, ValidationResult } from '@meta/validation-core';
 import { z } from 'zod';
 
-export class ZodModelAdapter<T extends Record<string, any>> extends AbstractDataModel<T> {
+export class ZodModelAdapter<T extends Record<string, any>> extends AbstractStatefulDataModel<T> {
   constructor(private schema: z.ZodType<T, any, any>, initialValue?: Partial<T>) {
     super(initialValue);
   }

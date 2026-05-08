@@ -109,9 +109,16 @@ export abstract class AbstractDataModel<T extends Record<string, any>> {
       const libResult = this.performLibraryValidation(this._value);
       let allErrors = [...libResult.errors];
 
-      for (const v of this._customValidators) {
-        const err = await v(this._value as T);
-        if (err) allErrors.push(err);
+      // 🚀 Run all custom async validators concurrently
+      if (this._customValidators.length > 0) {
+        const customResults = await Promise.all(
+          this._customValidators.map(v => v(this._value as T))
+        );
+
+        // Filter out nulls and push actual errors
+        for (const err of customResults) {
+          if (err) allErrors.push(err);
+        }
       }
 
       const newResult = { isValid: allErrors.length === 0, errors: allErrors };
@@ -122,13 +129,12 @@ export abstract class AbstractDataModel<T extends Record<string, any>> {
 
       this._lastValidationResult = newResult;
 
-      // Fire Validation Event
       if (isValidationChanged) {
         this._fireValidationChangeListeners();
       }
 
       return this._lastValidationResult;
-    }
+  }
 
   public getErrorsAt<P extends Path<T>>(path: P): string[] {
     return this._lastValidationResult.errors
