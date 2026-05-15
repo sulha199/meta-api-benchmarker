@@ -5,7 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", "//api/graphql.js"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "api/graphql.js"],
       "env": ["POSTGRES_URL", "MONGO_URI"]
     },
     "lint": {
