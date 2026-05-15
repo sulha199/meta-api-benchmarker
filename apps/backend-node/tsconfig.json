@@ -3,7 +3,7 @@
   "compilerOptions": {
     /* Set to NodeNext for modern Node.js ESM support */
 
-    /* Since a bundler will do the actual building, tsc is just for type-checking */
+    "module": "CommonJS",
     "noEmit": true,
 
     "outDir": "./dist",

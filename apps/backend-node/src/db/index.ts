@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
 import { allSchema } from "@repo/schema-drizzle";
 
 /**
@@ -13,4 +13,6 @@ const sql = neon(process.env.POSTGRES_URL!);
  * Export the Drizzle database instance.
  * We attach our schema to enable relational queries and strong typing.
  */
-export const db = drizzle(sql, { schema: allSchema });
+export const db: NeonHttpDatabase<typeof allSchema> = drizzle(sql, {
+  schema: allSchema,
+});
