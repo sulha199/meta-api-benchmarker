@@ -15,7 +15,7 @@ await esbuild.build({
   bundle: true,
   platform: "node",
   format: "esm",
-  outfile: "api/graphql.js",
+  outfile: "dist/index.js",
   external: external.filter((dep) => !dep.startsWith("@repo/")),
   loader: {
     ".graphql": "text",
