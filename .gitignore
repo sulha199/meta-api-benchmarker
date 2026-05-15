@@ -26,8 +26,6 @@ coverage
 out/
 build
 dist
-api/graphql.js
-apps/backend-node/api/graphql.js
 
 
 # Debug
