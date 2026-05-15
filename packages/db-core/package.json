@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./models": "./src/models/index.ts",
-    "./adapters": "./src/adapters/index.ts"
+    ".": "./dist/index.js",
+    "./models": "./dist/models/index.js",
+    "./adapters": "./dist/adapters/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "build": "tsc",
     "generate": "drizzle-kit generate",
     "push": "drizzle-kit push"
   },
