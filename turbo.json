@@ -9,7 +9,8 @@
         ".next/**",
         "!.next/cache/**",
         "dist/**",
-        "apps/backend-node/dist/**"
+        "apps/backend-node/dist/**",
+        "apps/backend-node/api/graphql.js"
       ],
       "env": ["POSTGRES_URL", "MONGO_URI"]
     },

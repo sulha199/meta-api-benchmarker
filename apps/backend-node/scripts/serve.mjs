@@ -1,5 +1,5 @@
 import express from "express";
-import handler from "../../../api/graphql.js";
+import handler from "../api/graphql.js";
 import { config } from "dotenv";
 import { resolve } from "path";
 

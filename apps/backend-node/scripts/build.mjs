@@ -11,11 +11,11 @@ const external = [
 ];
 
 await esbuild.build({
-  entryPoints: ["src/api/handler.ts"],
+  entryPoints: ["api/graphql.ts"],
   bundle: true,
   platform: "node",
   format: "esm",
-  outfile: "../../api/graphql.js",
+  outfile: "api/graphql.js",
   external: external.filter((dep) => !dep.startsWith("@repo/")),
   loader: {
     ".graphql": "text",

@@ -28,11 +28,13 @@ import { graphql as visitorGraphql } from "@repo/domain-visitors";
 import { graphql as topologyGraphql } from "@repo/domain-api-topology";
 import { ApiTopologiRepositoryImpl } from "@repo/domain-api-topology";
 
-import articleSchema from "@repo/domain-graphql-ast/schema";
-import visitorSchema from "@repo/domain-visitors/schema";
-import topologySchema from "@repo/domain-api-topology/schema";
+const graphqlAstSchemaUrl = import.meta
+  .resolve("@repo/domain-graphql-ast/schema");
+const visitorsSchemaUrl = import.meta.resolve("@repo/domain-visitors/schema");
+const topologySchemaUrl = import.meta
+  .resolve("@repo/domain-api-topology/schema");
 
-import type { MasterGraphQLContext } from "../types.ts";
+import type { MasterGraphQLContext } from "../src/types.ts";
 
 const postgresUrl = process.env.POSTGRES_URL ?? "";
 if (!postgresUrl) {
@@ -99,9 +101,9 @@ const typeDefs = [
     _empty: String
   }
   `,
-  articleSchema,
-  visitorSchema,
-  topologySchema,
+  readFileSync(new URL(graphqlAstSchemaUrl), "utf-8"),
+  readFileSync(new URL(visitorsSchemaUrl), "utf-8"),
+  readFileSync(new URL(topologySchemaUrl), "utf-8"),
 ];
 
 /**
