@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit || echo 'Build skipped for API'",
+    "build": "node scripts/build.mjs",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
@@ -16,7 +16,7 @@
     "db:seed": "pnpm db:seed:postgres && pnpm db:seed:mongo",
     "start": "cd ../.. && vercel dev",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "serve:local": "node scripts/build.mjs && node dist/index.js"
+    "serve:local": "pnpm build && node scripts/serve.mjs"
   },
   "keywords": [],
   "author": "",
@@ -25,9 +25,9 @@
     "@apollo/server": "^5.5.0",
     "@as-integrations/next": "^4.1.0",
     "@neondatabase/serverless": "^1.1.0",
+    "@repo/domain-api-topology": "workspace:*",
     "@repo/domain-graphql-ast": "workspace:*",
     "@repo/domain-visitors": "workspace:*",
-    "@repo/domain-api-topology": "workspace:*",
     "@repo/schema-drizzle": "workspace:*",
     "@repo/schema-mongo": "workspace:*",
     "drizzle-orm": "^0.45.2",
@@ -36,11 +36,13 @@
     "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "@types/node": "^22.15.3",
     "@repo/typescript-config": "workspace:*",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.15.3",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "esbuild": "^0.23.0",
+    "express": "^5.2.1",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "vercel": "^52.0.0"
