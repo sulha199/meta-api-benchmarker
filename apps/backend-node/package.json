@@ -15,7 +15,8 @@
     "db:seed:mongo": "pnpm --filter @repo/schema-mongo seed",
     "db:seed": "pnpm db:seed:postgres && pnpm db:seed:mongo",
     "start": "cd ../.. && vercel dev",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve:local": "node scripts/build.mjs && node dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -39,6 +40,7 @@
     "@repo/typescript-config": "workspace:*",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
+    "esbuild": "^0.23.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "vercel": "^52.0.0"
