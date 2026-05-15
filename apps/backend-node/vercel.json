@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/graphql.js": {
+      "runtime": "vercel-node@latest"
+    }
+  },
   "headers": [
     {
       "source": "/api/(.*)",
