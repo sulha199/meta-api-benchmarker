@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/graphql.js": {
-      "runtime": "vercel-node@latest"
+      "runtime": "@vercel/node"
     }
   },
   "headers": [
