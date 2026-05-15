@@ -11,7 +11,7 @@ const external = [
 ];
 
 await esbuild.build({
-  entryPoints: ["src/graphql.ts"],
+  entryPoints: ["api/graphql.ts"],
   bundle: true,
   platform: "node",
   format: "esm",

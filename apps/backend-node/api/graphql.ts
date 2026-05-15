@@ -1,4 +1,3 @@
-// apps/backend-node/src/graphql.ts
 import { config } from "dotenv";
 import { resolve } from "path";
 
