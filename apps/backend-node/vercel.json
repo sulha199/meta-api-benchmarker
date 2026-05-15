@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/graphql.js": {
-      "runtime": "nodejs24.x"
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
