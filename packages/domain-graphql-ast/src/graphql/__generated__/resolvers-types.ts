@@ -36,6 +36,11 @@ export type Comment = {
   id: Scalars['ID']['output'];
 };
 
+export enum DatabaseType {
+  Mongo = 'MONGO',
+  Postgres = 'POSTGRES'
+}
+
 export type Query = {
   __typename?: 'Query';
   getArticlesLazy: BenchmarkResult;
@@ -44,12 +49,12 @@ export type Query = {
 
 
 export type QueryGetArticlesLazyArgs = {
-  dbType: Scalars['String']['input'];
+  dbType: DatabaseType;
 };
 
 
 export type QueryGetArticlesOptimizedArgs = {
-  dbType: Scalars['String']['input'];
+  dbType: DatabaseType;
 };
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -130,6 +135,7 @@ export type ResolversTypes = ResolversObject<{
   BenchmarkResult: ResolverTypeWrapper<BenchmarkResult>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Comment: ResolverTypeWrapper<Comment>;
+  DatabaseType: DatabaseType;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;

@@ -1,10 +1,10 @@
-import { getRequestedFields, buildDataQueryPlan } from '@repo/graphql-utils';
-import type { Resolvers } from './__generated__/resolvers-types';
+import { getRequestedFields, buildDataQueryPlan } from "@repo/graphql-utils";
+import { DatabaseType, type Resolvers } from "./__generated__/resolvers-types";
 
 // Helper utility to calculate payload size in Kilobytes
 const calculatePayloadSizeKb = (data: any) => {
   const jsonString = JSON.stringify(data);
-  return Math.round(Buffer.byteLength(jsonString, 'utf8') / 1024);
+  return Math.round(Buffer.byteLength(jsonString, "utf8") / 1024);
 };
 
 export const resolvers: Resolvers = {
@@ -15,8 +15,12 @@ export const resolvers: Resolvers = {
     getArticlesLazy: async (_, { dbType }, context, info) => {
       const startMs = performance.now();
 
-      const repository = dbType === 'MONGO' ? context.repositories.mongo : context.repositories.postgres;
-      if (!repository) throw new Error(`${dbType} repository is not initialized.`);
+      const repository =
+        dbType === DatabaseType.Mongo
+          ? context.repositories.articles.mongo
+          : context.repositories.articles.postgres;
+      if (!repository)
+        throw new Error(`${dbType} repository is not initialized.`);
 
       // Execute the unoptimized fetch
       const data = await repository.getArticlesLazy();
@@ -41,16 +45,20 @@ export const resolvers: Resolvers = {
       const queryPlan = buildDataQueryPlan<any>(articleAst);
 
       // 2. Resolve the repository
-      const repository = dbType === 'MONGO' ? context.repositories.mongo : context.repositories.postgres;
-      if (!repository) throw new Error(`${dbType} repository is not initialized.`);
+      const repository =
+        dbType === DatabaseType.Mongo
+          ? context.repositories.articles.mongo
+          : context.repositories.articles.postgres;
+      if (!repository)
+        throw new Error(`${dbType} repository is not initialized.`);
 
       // 3. Execute!
-      const data = await repository.getArticlesOptimized(queryPlan)
+      const data = await repository.getArticlesOptimized(queryPlan);
 
       const latencyMs = Math.round(performance.now() - startMs);
       const payloadSizeKb = calculatePayloadSizeKb(data);
 
       return { latencyMs, payloadSizeKb, data };
-    }
-  }
+    },
+  },
 };

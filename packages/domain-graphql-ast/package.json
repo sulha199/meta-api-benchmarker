@@ -2,10 +2,12 @@
   "name": "@repo/domain-graphql-ast",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "exports": {
     ".": "./src/index.ts",
     "./graphql": "./src/graphql/index.ts",
-    "./models": "./src/models/index.ts"
+    "./models": "./src/models/index.ts",
+    "./schema": "./src/graphql/schema.graphql"
   },
   "scripts": {
     "generate": "graphql-codegen"
@@ -13,12 +15,15 @@
   "dependencies": {
     "@repo/db-core": "workspace:*",
     "@repo/graphql-utils": "workspace:*",
+    "@repo/shared-backend": "workspace:^",
+    "@repo/shared-common": "workspace:*",
     "graphql": "^16.8.1"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^7.0.0",
     "@graphql-codegen/typescript": "^6.0.0",
     "@graphql-codegen/typescript-resolvers": "^6.0.0",
+    "@repo/typescript-config": "workspace:*",
     "@types/node": "^20.0.0",
     "typescript": "^6.0.3"
   }

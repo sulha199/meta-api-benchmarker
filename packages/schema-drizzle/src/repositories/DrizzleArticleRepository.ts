@@ -1,13 +1,15 @@
 import type {
   IArticleRepository,
-  ArticleEntity
-} from '@repo/domain-graphql-ast';
+  ArticleEntity,
+  ArticleCreatePayload,
+  ArticleUpdatePayload,
+} from "@repo/domain-graphql-ast";
 
 // We import our specific database schemas
-import { astArticles } from '../schema/ast';
-import { AbstractDrizzlePgRepository } from './AbstractDrizzleRepository';
-import { PgDatabase, PgTable, PgColumn } from 'drizzle-orm/pg-core';
-import { DataQueryPlan } from '@repo/db-core';
+import { astArticles } from "../schema/ast";
+import { AbstractDrizzlePgRepository } from "./AbstractDrizzleRepository";
+import { PgDatabase, PgTable, PgColumn } from "drizzle-orm/pg-core";
+import { DataQueryPlan, QueryCriteria } from "@repo/db-core";
 
 // Drizzle type inference
 type DbArticleSelect = typeof astArticles.$inferSelect;
@@ -22,11 +24,13 @@ export class DrizzleArticleRepository
     DbArticleUpdate,
     PgDatabase<any, any, any>,
     PgTable<any> & { id: PgColumn<any> },
-    'id'
+    "id",
+    ArticleCreatePayload,
+    ArticleUpdatePayload
   >
   implements IArticleRepository
 {
-  protected columnIdName: 'id' = 'id';
+  protected columnIdName: "id" = "id";
 
   constructor(
     private db: PgDatabase<any, any, any>, // The raw Drizzle postgres client
@@ -38,20 +42,24 @@ export class DrizzleArticleRepository
   // 1. DOMAIN MAPPERS (The Data Mapper Pattern)
   // ==========================================
 
-  protected toDomain(dbRecord: DbArticleSelect & { comments?: any[] }): ArticleEntity {
+  protected toDomain(
+    dbRecord: DbArticleSelect & { comments?: any[] },
+  ): ArticleEntity {
     return {
       id: dbRecord.id,
       title: dbRecord.title,
       contentBody: dbRecord.contentBody,
-      createdAt: dbRecord.createdAt,
+      createdAt: dbRecord.createdAt ? dbRecord.createdAt.toISOString() : null,
       // Map nested relations safely
-      comments: dbRecord.comments ? dbRecord.comments.map(c => ({
-        id: c.id,
-        articleId: c.articleId,
-        authorId: c.authorId,
-        commentText: c.commentText,
-        createdAt: c.createdAt
-      })) : []
+      comments: dbRecord.comments
+        ? dbRecord.comments.map((c) => ({
+            id: c.id,
+            articleId: c.articleId,
+            authorId: c.authorId,
+            commentText: c.commentText,
+            createdAt: c.createdAt ? c.createdAt.toISOString() : null,
+          }))
+        : [],
     };
   }
 
@@ -63,22 +71,43 @@ export class DrizzleArticleRepository
     };
   }
 
-  async getArticlesLazy(): Promise<ArticleEntity[]> {
-    // implement lazy fetch with N+1 problem by fetching all fields and its relations
-    const articles = await this.findMany({}, {
-      fields: ['contentBody', 'title', 'createdAt', 'id'],
-      relations: {
-        comments: {
-          fields: ['articleId', 'articleId', 'commentText', 'createdAt', 'id', ]
-        },
-      }
-    });
-    return articles.map(this.toDomain);
+  protected toAdapterQuery(
+    query: QueryCriteria<ArticleEntity>,
+  ): QueryCriteria<DbArticleSelect> {
+    const { where, orderBy, ...rest } = query;
+
+    const adapterWhere: any = { ...where };
+    if (where?.createdAt) {
+      adapterWhere.createdAt = new Date(where.createdAt);
+    }
+
+    return {
+      ...rest,
+      where: Object.keys(adapterWhere).length > 0 ? adapterWhere : undefined,
+      orderBy,
+    };
   }
 
-  async getArticlesOptimized(plan: DataQueryPlan<ArticleEntity>): Promise<ArticleEntity[]> {
-    const articles = await this.findMany({}, plan);
-    return articles.map(this.toDomain);
+  async getArticlesLazy(): Promise<ArticleEntity[]> {
+    // We use a full plan to fetch all columns and relations in one (unoptimized) way
+    // to measure the impact of payload size on latency.
+    return this.findMany(
+      {},
+      {
+        fields: ["contentBody", "title", "createdAt", "id"],
+        relations: {
+          comments: {
+            fields: ["articleId", "authorId", "commentText", "createdAt", "id"],
+          },
+        },
+      },
+    );
+  }
+
+  async getArticlesOptimized(
+    plan: DataQueryPlan<ArticleEntity>,
+  ): Promise<ArticleEntity[]> {
+    return this.findMany({}, plan);
   }
 
   // // ==========================================

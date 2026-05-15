@@ -1,11 +1,14 @@
 {
+  "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
-    "lib": ["ES2020"],
-    "esModuleInterop": true,
-    "strict": true,
-    "skipLibCheck": true
+    /* Set to NodeNext for modern Node.js ESM support */
+
+    /* Since a bundler will do the actual building, tsc is just for type-checking */
+    "noEmit": true,
+
+    "outDir": "./dist",
+    "types": ["node"],
   },
-  "include": ["api/**/*", "src/**/*"]
+  "include": ["src/**/*", "api/**/*"],
+  "exclude": ["node_modules", "dist"],
 }

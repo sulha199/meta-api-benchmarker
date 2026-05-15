@@ -1,7 +1,7 @@
-import { QueryCriteria, DataQueryPlan } from '@repo/db-core';
-import type { IDatabaseAdapter } from '@repo/db-core/adapters';
-import { eq, getTableName } from 'drizzle-orm';
-import type { PgDatabase, PgTable, PgColumn } from 'drizzle-orm/pg-core';
+import { QueryCriteria, DataQueryPlan } from "@repo/db-core";
+import type { IDatabaseAdapter } from "@repo/db-core/adapters";
+import { eq, getTableName } from "drizzle-orm";
+import type { PgDatabase, PgTable, PgColumn } from "drizzle-orm/pg-core";
 
 export interface DrizzleRawClient<TDb, TTable> {
   db: TDb;
@@ -18,15 +18,23 @@ export class DrizzleAdapter<
   TInsert,
   TUpdate,
   TDb extends PgDatabase<any, any, any>,
-  TTable extends PgTable<any> & { id: PgColumn<any> }
-> implements IDatabaseAdapter<TEntity, TSelect, TInsert, TUpdate, DrizzleRawClient<TDb, TTable>> {
-
+  TTable extends PgTable<any> & { id: PgColumn<any> },
+> implements IDatabaseAdapter<
+  TEntity,
+  TSelect,
+  TInsert,
+  TUpdate,
+  DrizzleRawClient<TDb, TTable>
+> {
   constructor(
     private readonly db: TDb,
-    private readonly table: TTable
+    private readonly table: TTable,
   ) {}
 
-  async findById(id: string, plan?: DataQueryPlan<TEntity>): Promise<TSelect | null> {
+  async findById(
+    id: string,
+    plan?: DataQueryPlan<TEntity>,
+  ): Promise<TSelect | null> {
     const result = await this.findMany({ where: eq(this.table.id, id) }, plan);
     return result[0] || null;
   }
@@ -54,38 +62,39 @@ export class DrizzleAdapter<
   }
 
   async delete(id: string): Promise<boolean> {
-    await this.db
-      .delete(this.table)
-      .where(eq(this.table.id, id));
+    await this.db.delete(this.table).where(eq(this.table.id, id));
 
     return true;
   }
 
-  async findMany(query: QueryCriteria = {}, plan?: DataQueryPlan<TEntity>): Promise<TSelect[]> {
+  async findMany(
+    query: QueryCriteria = {},
+    plan?: DataQueryPlan<TEntity>,
+  ): Promise<TSelect[]> {
     // 1. Compile the generic DataQueryPlan into Drizzle Relational API syntax
-    const drizzleConfig = this.buildDrizzleConfig(plan || {
-      fields: [],
-    });
+    const drizzleConfig = this.buildDrizzleConfig(
+      plan || {
+        fields: [],
+      },
+    );
 
     // Note: You would also translate `query.where`, `query.limit`, etc., into Drizzle format here
     // drizzleConfig.limit = query.limit;
 
     // 2. Execute! Drizzle will automatically generate the JSON Aggregation SQL
-    return (this.db.query)[
-      getTableName(this.table)
-    ].findMany(drizzleConfig);
+    return this.db.query[getTableName(this.table)].findMany(drizzleConfig);
   }
 
   /**
-    * THE COMPILER: Converts agnostic plan to Drizzle's format.
-    */
+   * THE COMPILER: Converts agnostic plan to Drizzle's format.
+   */
   private buildDrizzleConfig(plan: DataQueryPlan<any>): Record<string, any> {
     const config: Record<string, any> = {};
 
     // Map base columns
     if (plan.fields && plan.fields.length > 0) {
       config.columns = {};
-      const columnsToSelect = new Set([...plan.fields, 'id']); // Always need ID for relations
+      const columnsToSelect = new Set([...plan.fields, "id"]); // Always need ID for relations
       for (const col of columnsToSelect) config.columns[col] = true;
     }
 
@@ -95,7 +104,7 @@ export class DrizzleAdapter<
       for (const [relationName, childPlan] of Object.entries(plan.relations)) {
         if (childPlan) {
           // Recursive compilation for deeply nested relations
-          config.with[relationName] = this.buildDrizzleConfig(childPlan);
+          config.with[relationName] = this.buildDrizzleConfig(childPlan as any);
         }
       }
     }

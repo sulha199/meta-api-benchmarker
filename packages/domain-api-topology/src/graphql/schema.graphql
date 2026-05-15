@@ -1,0 +1,31 @@
+enum Environment {
+  NODE_JS
+  SUPABASE
+}
+
+type Benchmark {
+  id: ID!
+  visitorId: ID!
+  environment: Environment!
+  payloadSizeKb: Int!
+  totalRoundtripMs: Int
+  backendParseMs: Int
+  backendDbInsertMs: Int
+  createdAt: String!
+}
+
+extend type Query {
+  getBenchmarks(visitorId: ID!): [Benchmark!]!
+}
+
+extend type Mutation {
+  submitBenchmark(
+    visitorId: ID!
+    environment: Environment!
+    payloadSizeKb: Int!
+    dummyPayload: String
+    totalRoundtripMs: Int
+    backendParseMs: Int
+    backendDbInsertMs: Int
+  ): Benchmark!
+}

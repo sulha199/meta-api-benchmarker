@@ -1,8 +1,13 @@
-import { AbstractMongoRepository } from './AbstractMongoRepository';
-import type { IArticleRepository, ArticleEntity } from '@repo/domain-graphql-ast';
-import { ArticleModel, ArticleSchema, CommentModel } from '../schema/models';
-import type { DataQueryPlan } from '@repo/db-core';
-import type { InferSchemaType, Types } from 'mongoose';
+import { AbstractMongoRepository } from "./AbstractMongoRepository";
+import type {
+  IArticleRepository,
+  ArticleEntity,
+  ArticleCreatePayload,
+  ArticleUpdatePayload,
+} from "@repo/domain-graphql-ast";
+import { ArticleModel, ArticleSchema, CommentModel } from "../schema/models";
+import type { DataQueryPlan, QueryCriteria } from "@repo/db-core";
+import type { InferSchemaType, Types } from "mongoose";
 
 // 1. Automatically infer types from Mongoose Schema
 export type DbArticleInsert = InferSchemaType<typeof ArticleSchema>;
@@ -16,10 +21,17 @@ export type DbArticleSelect = DbArticleInsert & {
 };
 
 export class MongoArticleRepository
-  extends AbstractMongoRepository<ArticleEntity, DbArticleSelect, DbArticleInsert, DbArticleUpdate>
+  extends AbstractMongoRepository<
+    ArticleEntity,
+    DbArticleSelect,
+    DbArticleInsert,
+    DbArticleUpdate,
+    ArticleCreatePayload,
+    ArticleUpdatePayload
+  >
   implements IArticleRepository
 {
-  protected columnIdName = '_id' as const;
+  protected columnIdName = "_id" as const;
 
   constructor() {
     super(ArticleModel);
@@ -31,13 +43,15 @@ export class MongoArticleRepository
       title: dbRecord.title,
       contentBody: dbRecord.contentBody,
       createdAt: dbRecord.createdAt,
-      comments: dbRecord.comments ? dbRecord.comments.map((c: any) => ({
-        id: c._id ? c._id.toString() : c.id,
-        articleId: c.articleId.toString(),
-        authorId: c.authorId,
-        commentText: c.commentText,
-        createdAt: c.createdAt
-      })) : []
+      comments: dbRecord.comments
+        ? dbRecord.comments.map((c: any) => ({
+            id: c._id ? c._id.toString() : c.id,
+            articleId: c.articleId.toString(),
+            authorId: c.authorId,
+            commentText: c.commentText,
+            createdAt: c.createdAt,
+          }))
+        : [],
     };
   }
 
@@ -45,39 +59,55 @@ export class MongoArticleRepository
     return {
       title: entityData.title!,
       contentBody: entityData.contentBody!,
-      createdAt: entityData.createdAt!,
+      createdAt: entityData.createdAt
+        ? new Date(entityData.createdAt)
+        : new Date(),
     };
   }
 
   // ==========================================
-  // BENCHMARK 1: THE N+1 PROBLEM (LAZY)
+  // BENCHMARK 1: THE LAZY TRAP (UNOPTIMIZED PAYLOAD)
   // ==========================================
   async getArticlesLazy(): Promise<ArticleEntity[]> {
-    // 1. Fetch ALL article columns (No optimization, huge packet size)
-    const rawArticles = await this.adapter.findMany({}, {
-      fields: ['contentBody', 'title', 'createdAt', 'id'],
-      relations: {
-        comments: {
-          fields: ['articleId', 'articleId', 'commentText', 'createdAt', 'id', ]
+    // We use a full plan to fetch all columns and relations in one way
+    // to measure the impact of payload size (over-fetching) on latency.
+    return this.findMany(
+      {},
+      {
+        fields: ["contentBody", "title", "createdAt", "id"],
+        relations: {
+          comments: {
+            fields: ["articleId", "authorId", "commentText", "createdAt", "id"],
+          },
         },
-      }
-    });
+      },
+    );
+  }
 
-    // // 2. The N+1 Loop (Massive latency and unnecessary queries)
-    // for (const article of rawArticles) {
-    //   // Manually query the Comment collection per article!
-    //   const comments = await CommentModel.find({ articleId: article._id }).exec();
-    //   article.comments = comments.map(c => c.toObject({ virtuals: true }));
-    // }
+  protected toAdapterQuery(
+    query: QueryCriteria<ArticleEntity>,
+  ): QueryCriteria<DbArticleSelect> {
+    const { where, limit, offset, orderBy } = query;
 
-    // Map to pure Domain Entities
-    return rawArticles.map(record => this.toDomain(record));
+    const adapterWhere: any = { ...where };
+    if (where?.createdAt) {
+      adapterWhere.createdAt = new Date(where.createdAt);
+    }
+
+    return {
+      where: Object.keys(adapterWhere).length > 0 ? adapterWhere : undefined,
+      limit,
+      offset,
+      orderBy,
+    };
   }
 
   // ==========================================
   // BENCHMARK 2: THE AST SOLUTION (OPTIMIZED)
   // ==========================================
-  async getArticlesOptimized(plan: DataQueryPlan<ArticleEntity>): Promise<ArticleEntity[]> {
+  async getArticlesOptimized(
+    plan: DataQueryPlan<ArticleEntity>,
+  ): Promise<ArticleEntity[]> {
     // 1. Pass the strict plan down.
     // Mongoose compiles this to select('title') and populate({ path: 'comments', select: 'commentText' })
     // Results in ONE query, fetching ONLY requested bytes!

@@ -1,1 +1,2 @@
-export * from './repositories';
+export * as graphql from "./graphql";
+export * from "./repositories";

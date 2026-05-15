@@ -2,16 +2,25 @@
   "name": "@repo/schema-mongo",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "seed": "tsx src/seed.ts"
+  },
   "dependencies": {
-    "mongoose": "^8.0.0",
     "@repo/db-core": "workspace:*",
-    "@repo/domain-graphql-ast": "workspace:*"
+    "@repo/domain-graphql-ast": "workspace:*",
+    "@types/node": "^25.7.0",
+    "mongoose": "^8.0.0"
   },
   "devDependencies": {
-    "typescript": "^6.0.3",
-    "@types/mongoose": "^5.11.97"
+    "@faker-js/faker": "^10.4.0",
+    "@repo/typescript-config": "workspace:*",
+    "@types/mongoose": "^5.11.97",
+    "dotenv": "^17.4.2",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
   }
 }

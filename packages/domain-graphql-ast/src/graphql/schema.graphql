@@ -19,7 +19,12 @@ type BenchmarkResult {
   data: [Article!]!
 }
 
+enum DatabaseType {
+  POSTGRES
+  MONGO
+}
+
 type Query {
-  getArticlesLazy(dbType: String!): BenchmarkResult!
-  getArticlesOptimized(dbType: String!): BenchmarkResult!
+  getArticlesLazy(dbType: DatabaseType!): BenchmarkResult!
+  getArticlesOptimized(dbType: DatabaseType!): BenchmarkResult!
 }

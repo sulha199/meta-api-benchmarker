@@ -1,0 +1,26 @@
+# packages/domain-visitors/src/graphql/schema.graphql
+type VisitLog {
+  id: ID!
+  visitorId: ID!
+  locale: String!
+  userAgent: String
+  visitedAt: String!
+}
+
+type Visitor {
+  id: ID!
+  rawEmail: String
+  logs: [VisitLog!]!
+  createdAt: String!
+}
+
+extend type Query {
+  getVisitor(id: ID!): Visitor
+  ping: String!
+}
+
+extend type Mutation {
+  registerVisitor(id: ID!, rawEmail: String): Visitor!
+  updateVisitor(id: ID!, rawEmail: String): Visitor
+  deleteVisitor(id: ID!): Boolean!
+}

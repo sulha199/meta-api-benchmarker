@@ -1,9 +1,11 @@
 {
   "name": "@meta/storage",
   "version": "0.0.1",
+  "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
     "typescript": "^6.0.3"
   }
 }

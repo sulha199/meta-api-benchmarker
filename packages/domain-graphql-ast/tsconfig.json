@@ -1,15 +1,12 @@
 {
+  "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "module": "esnext", // or "preserve"
+    "moduleResolution": "bundler",
     "types": ["node"],
-    "declarationMap": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules"],
 }

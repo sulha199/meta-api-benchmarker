@@ -1,15 +1,26 @@
 {
   "name": "@repo/domain-visitors",
   "version": "1.0.0",
+  "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./schema": "./src/graphql/schema.graphql"
+  },
+  "scripts": {
+    "generate": "graphql-codegen"
   },
   "dependencies": {
-    "@repo/db-core": "workspace:*"
+    "@repo/db-core": "workspace:*",
+    "@repo/shared-backend": "workspace:^",
+    "@repo/shared-common": "workspace:*",
+    "graphql": "^16.0.0"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^7.0.0",
     "@graphql-codegen/typescript": "^6.0.0",
-    "@graphql-codegen/typescript-resolvers": "^6.0.0"
+    "@graphql-codegen/typescript-resolvers": "^6.0.0",
+    "@graphql-tools/utils": "^9.0.0",
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "^6.0.3"
   }
 }

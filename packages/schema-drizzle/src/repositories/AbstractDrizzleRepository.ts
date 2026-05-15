@@ -1,5 +1,5 @@
-import { AbstractRepository } from "@repo/db-core";
-import type { PgDatabase, PgTable, PgColumn } from 'drizzle-orm/pg-core';
+import { AbstractRepository, QueryCriteria } from "@repo/db-core";
+import type { PgDatabase, PgTable, PgColumn } from "drizzle-orm/pg-core";
 import { DrizzleAdapter, DrizzleRawClient } from "../adapters";
 
 /**
@@ -12,9 +12,19 @@ export abstract class AbstractDrizzlePgRepository<
   TUpdate,
   TDb extends PgDatabase<any, any, any>,
   TTable extends PgTable<any> & { id: PgColumn<any> },
-   TColumnIdName extends keyof TDbSelect
-> extends AbstractRepository<TEntity, TDbSelect, TDbInsert, TUpdate, DrizzleRawClient<TDb, TTable>, TColumnIdName> {
-
+  TColumnIdName extends keyof TDbSelect,
+  TEntityCreate extends Partial<TEntity> = TEntity,
+  TEntityUpdate extends Partial<TEntity> = Partial<TEntity>,
+> extends AbstractRepository<
+  TEntity,
+  TDbSelect,
+  TDbInsert,
+  TUpdate,
+  DrizzleRawClient<TDb, TTable>,
+  TColumnIdName,
+  TEntityCreate,
+  TEntityUpdate
+> {
   constructor(db: TDb, table: TTable) {
     // We instantiate the Drizzle adapter and pass it up to AbstractRepository
     super(new DrizzleAdapter(db, table));
