@@ -1,10 +1,9 @@
-// apps/backend-node/api/graphql.ts
+// apps/backend-node/src/graphql.ts
 import { config } from "dotenv";
 import { resolve } from "path";
 
 // Look for .env in the monorepo root
 config({ path: resolve(process.cwd(), "../../.env") });
-import { readFileSync } from "fs";
 import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import mongoose from "mongoose";
@@ -28,13 +27,12 @@ import { graphql as visitorGraphql } from "@repo/domain-visitors";
 import { graphql as topologyGraphql } from "@repo/domain-api-topology";
 import { ApiTopologiRepositoryImpl } from "@repo/domain-api-topology";
 
-const graphqlAstSchemaUrl = import.meta
-  .resolve("@repo/domain-graphql-ast/schema");
-const visitorsSchemaUrl = import.meta.resolve("@repo/domain-visitors/schema");
-const topologySchemaUrl = import.meta
-  .resolve("@repo/domain-api-topology/schema");
 
-import type { MasterGraphQLContext } from "../src/types.ts";
+import articleSchema from "@repo/domain-graphql-ast/schema";
+import visitorSchema from "@repo/domain-visitors/schema";
+import topologySchema from "@repo/domain-api-topology/schema";
+
+import type { MasterGraphQLContext } from "./types.ts";
 
 const postgresUrl = process.env.POSTGRES_URL ?? "";
 if (!postgresUrl) {
@@ -101,9 +99,9 @@ const typeDefs = [
     _empty: String
   }
   `,
-  readFileSync(new URL(graphqlAstSchemaUrl), "utf-8"),
-  readFileSync(new URL(visitorsSchemaUrl), "utf-8"),
-  readFileSync(new URL(topologySchemaUrl), "utf-8"),
+  articleSchema,
+  visitorSchema,
+  topologySchema,
 ];
 
 /**
