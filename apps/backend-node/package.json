@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "cd ../.. && turbo run build --filter=backend-node",
+    "build": "cd ../.. && turbo run build --filter=@meta/backend-node",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
