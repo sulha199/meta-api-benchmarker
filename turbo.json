@@ -5,12 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        "dist/**",
-        "apps/backend-node/dist/**"
-      ],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "api/**"],
       "env": ["POSTGRES_URL", "MONGO_URI"]
     },
     "lint": {
