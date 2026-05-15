@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/api/graphql",
-      "destination": "/apps/backend-node/api/graphql"
-    }
-  ]
-}

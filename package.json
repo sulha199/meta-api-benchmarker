@@ -1,6 +1,7 @@
 {
   "name": "meta-api-benchmarker",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev start",
@@ -9,6 +10,7 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "dotenv": "^17.4.2",
     "prettier": "^3.7.4",
     "supabase": "^2.95.3",
     "turbo": "^2.9.6",
@@ -17,5 +19,14 @@
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@apollo/server": "^5.5.0",
+    "@as-integrations/next": "^4.1.0",
+    "@neondatabase/serverless": "^1.1.0",
+    "drizzle-orm": "^0.45.2",
+    "graphql": "^16.14.0",
+    "mongoose": "^8.0.0",
+    "postgres": "^3.4.9"
   }
 }
