@@ -18,6 +18,7 @@ await esbuild.build({
   platform: "node",
   format: "cjs",
   outfile: isVercel ? "api/graphql.ts" : "api/graphql.js",
+  allowOverwrite: isVercel,
   external: external.filter((dep) => !dep.startsWith("@repo/")),
   loader: {
     ".graphql": "text",
