@@ -1,4 +1,5 @@
-export * as graphql from "./graphql";
+import * as graphql from "./graphql";
+export { graphql };
 
 // Explicit re-exports so Node/Vercel ESM resolves named imports from the package root
 // (star-export chains through ./repositories can omit runtime exports in some setups).

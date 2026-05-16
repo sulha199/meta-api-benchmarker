@@ -1,2 +1,3 @@
-export * as graphql from "./graphql";
+import * as graphql from "./graphql";
+export { graphql };
 export * from "./repositories";
