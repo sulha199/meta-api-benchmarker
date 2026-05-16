@@ -44,10 +44,10 @@ const db = useNeonHttp
   ? drizzleNeon(neon(postgresUrl), { schema: drizzleSchema })
   : drizzlePostgres(postgres(postgresUrl), { schema: drizzleSchema });
 
-const postgresArticleRepo = new DrizzleArticleRepository(db);
-const postgresVisitorRepo = new DrizzleVisitorRepository(db);
+const postgresArticleRepo = new DrizzleArticleRepository(db as any);
+const postgresVisitorRepo = new DrizzleVisitorRepository(db as any);
 const postgresApiTopologyRepo = new ApiTopologiRepositoryImpl(
-  new DrizzleBenchmarkRepository(db),
+  new DrizzleBenchmarkRepository(db as any),
 );
 
 type MongooseGlobal = typeof globalThis & {
