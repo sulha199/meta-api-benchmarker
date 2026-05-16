@@ -42,7 +42,7 @@ jobs:
           VITE_NODE_GRAPHQL_URL_CLOUD: "https://meta-api-benchmarker.vercel.app/api/graphql"
           VITE_SUPABASE_URL: "https://tkdptyyohhgouonivfau.supabase.co"
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-        run: pnpm --filter frontend-react run build
+        run: pnpm turbo build --filter=frontend-react
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
