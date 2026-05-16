@@ -1,8 +1,3 @@
 {
-  "functions": {
-    "api/graphql.js": {
-      "runtime": "@vercel/node"
-    }
-  },
   "rewrites": [{ "source": "/(.*)", "destination": "/api/graphql" }]
 }
