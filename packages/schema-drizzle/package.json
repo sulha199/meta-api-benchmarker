@@ -4,12 +4,14 @@
   "type": "module",
   "private": true,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./dist/index.js"
   },
   "scripts": {
     "generate": "drizzle-kit generate",
     "push": "drizzle-kit push",
-    "seed": "tsx src/seed.ts"
+    "seed": "tsx src/seed.ts",
+    "build": "tsc",
+    "dev": "tsc --watch"
   },
   "dependencies": {
     "@repo/db-core": "workspace:*",
@@ -27,5 +29,10 @@
     "postgres": "^3.4.9",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
-  }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ]
 }

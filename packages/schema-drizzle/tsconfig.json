@@ -1,11 +1,17 @@
 {
-  "extends": "@repo/typescript-config/base.json",
+  "extends": "../typescript-config/base.json",
   "compilerOptions": {
-    "noEmit": true,
     "jsx": "react-jsx",
-    "module": "esnext", // or "preserve"
+    "module": "esnext",
     "moduleResolution": "bundler",
+    "outDir": "dist",
+    "declaration": true,
+    "rootDir": "src"
   },
-  "include": ["src"],
-  "exclude": ["node_modules"],
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

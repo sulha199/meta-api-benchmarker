@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./dist/index.js"
   },
   "scripts": {
-    "seed": "tsx src/seed.ts"
+    "seed": "tsx src/seed.ts",
+    "build": "tsc",
+    "dev": "tsc --watch"
   },
   "dependencies": {
     "@repo/db-core": "workspace:*",
@@ -22,5 +24,10 @@
     "dotenv": "^17.4.2",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
-  }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ]
 }

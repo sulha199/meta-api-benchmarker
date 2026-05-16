@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./utils": "./src/lib/utils.ts"
+    ".": "./dist/index.js",
+    "./utils": "./dist/lib/utils.js"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
@@ -28,5 +28,14 @@
     "react-dom": "^19.2.5",
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
   }
 }

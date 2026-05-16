@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./schema": "./src/graphql/schema.graphql"
+    ".": "./dist/index.js",
+    "./schema": "./dist/graphql/schema.js"
   },
   "scripts": {
-    "generate": "graphql-codegen"
+    "generate": "graphql-codegen",
+    "build": "tsc && pnpm run generate && node ../../scripts/copy-schema.cjs",
+    "dev": "tsc --watch"
   },
   "dependencies": {
     "@repo/db-core": "workspace:*",
@@ -21,5 +23,10 @@
     "@graphql-codegen/typescript-resolvers": "^6.0.0",
     "@graphql-tools/utils": "^9.0.0",
     "@repo/typescript-config": "workspace:*"
-  }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ]
 }

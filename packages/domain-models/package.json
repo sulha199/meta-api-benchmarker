@@ -1,13 +1,20 @@
 {
   "name": "@meta/domain-models",
   "version": "0.0.1",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "dependencies": {
     "@repo/validation-zod": "workspace:*",
     "zod": "^3.22.0"
   },
   "devDependencies": {
     "typescript": "^6.0.3"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
   }
 }

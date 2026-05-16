@@ -1,4 +1,10 @@
-import { NODE_GRAPHQL_URL, NODE_HEADERS, SUPABASE_GRAPHQL_ENDPOINT, SUPABASE_HEADERS, type Competitor } from "../config/constants";
+import {
+  NODE_GRAPHQL_URL,
+  NODE_HEADERS,
+  SUPABASE_GRAPHQL_ENDPOINT,
+  SUPABASE_HEADERS,
+  type Competitor,
+} from "../config/constants";
 
 /**
  * Define the structure of the message data for type safety within the worker
@@ -8,13 +14,13 @@ export type BenchmarkMessage = {
   visitorId: string;
   requestCount: number;
   payloadSizeKb: number;
-}
+};
 
 export type BenchmarkResult = {
   success: boolean;
   /** Duration in miliseconds */
   duration: number;
-}
+};
 
 /**
  * Web Worker for generating load and measuring API performance.
@@ -32,16 +38,16 @@ self.onmessage = async (event: MessageEvent<BenchmarkMessage>) => {
     const startTime = performance.now();
 
     try {
-      if (competitor === 'Node.js') {
+      if (competitor === "Node.js") {
         // Send request to Vercel Serverless
         const response = await fetch(NODE_GRAPHQL_URL, {
-          method: 'POST',
+          method: "POST",
           headers: NODE_HEADERS,
           body: JSON.stringify({
             query: `
               mutation SubmitBenchmark(
                 $visitorId: ID!,
-                $environment: String!,
+                $environment: Environment!,
                 $payloadSizeKb: Int!,
                 $dummyPayload: String,
                 $totalRoundtripMs: Int
@@ -59,22 +65,22 @@ self.onmessage = async (event: MessageEvent<BenchmarkMessage>) => {
             `,
             variables: {
               visitorId: visitorId,
-              environment: 'Node.js',
+              environment: "NODE_JS",
               payloadSizeKb: payloadSizeKb,
               dummyPayload: dummyPayload,
               // We calculate a preliminary roundtrip time here (though actual is calculated after)
               // For a true benchmark, we will track the time after the await
-              totalRoundtripMs: 0
-            }
-          })
+              totalRoundtripMs: 0,
+            },
+          }),
         });
 
         // Wait for the JSON response to ensure the request is completely finished
         await response.json();
-      } else if (competitor === 'Supabase') {
+      } else if (competitor === "Supabase") {
         // Send request directly to Supabase GraphQL API
         const response = await fetch(SUPABASE_GRAPHQL_ENDPOINT, {
-          method: 'POST',
+          method: "POST",
           headers: SUPABASE_HEADERS,
           body: JSON.stringify({
             query: `
@@ -100,9 +106,9 @@ self.onmessage = async (event: MessageEvent<BenchmarkMessage>) => {
               visitorId: visitorId,
               environment: "Supabase",
               payloadSizeKb: payloadSizeKb,
-              totalRoundtripMs: 0
-            }
-          })
+              totalRoundtripMs: 0,
+            },
+          }),
         });
 
         await response.json();
@@ -116,17 +122,19 @@ self.onmessage = async (event: MessageEvent<BenchmarkMessage>) => {
 
       // Report progress back to the main React thread
       self.postMessage({
-        type: 'PROGRESS',
+        type: "PROGRESS",
         progress: ((i + 1) / requestCount) * 100,
-        currentRoundtrip: durationMs
+        currentRoundtrip: durationMs,
       });
-
     } catch (error) {
       console.error("Worker request failed:", error);
-      results.push({ success: false, duration: Math.round(performance.now() - startTime) });
+      results.push({
+        success: false,
+        duration: Math.round(performance.now() - startTime),
+      });
     }
   }
 
   // Report final completion with all data
-  self.postMessage({ type: 'COMPLETE', results });
+  self.postMessage({ type: "COMPLETE", results });
 };
