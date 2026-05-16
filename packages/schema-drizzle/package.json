@@ -4,14 +4,9 @@
   "type": "module",
   "private": true,
   "exports": {
-    ".": "./dist/index.js",
-    "./schema": "./dist/schema/index.js"
+    ".": "./src/index.ts"
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "build": "tsc",
     "generate": "drizzle-kit generate",
     "push": "drizzle-kit push",
     "seed": "tsx src/seed.ts"
