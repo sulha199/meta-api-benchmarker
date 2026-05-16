@@ -1,12 +1,7 @@
-import { Environment, Resolvers } from "./__generated__/resolvers-types";
+import { Resolvers } from "./__generated__/resolvers-types";
 import type { GraphQLContext } from "../repositories/index";
 
 export const resolvers: Resolvers<GraphQLContext> = {
-  // Enum mapping for Apollo Server
-  Environment: {
-    NODE_JS: "Node.js",
-    SUPABASE: "Supabase",
-  },
   Query: {
     getBenchmarks: async (_, args, context) => {
       const { repositories } = context;
@@ -14,13 +9,7 @@ export const resolvers: Resolvers<GraphQLContext> = {
       const { postgres } = apiTopology;
 
       const benchmarks = await postgres.getBenchmarks(args.visitorId);
-      return benchmarks.map((b) => ({
-        ...b,
-        environment:
-          b.environment === "Node.js"
-            ? Environment.NodeJs
-            : Environment.Supabase,
-      }));
+      return benchmarks as any;
     },
   },
   Mutation: {
@@ -29,7 +18,6 @@ export const resolvers: Resolvers<GraphQLContext> = {
       const { apiTopology } = repositories;
       const { postgres } = apiTopology;
 
-      // args.environment will now be "Node.js" or "Supabase" thanks to the Enum mapping above
       const result = await postgres.submitBenchmark({
         visitorId: args.visitorId,
         payloadSizeKb: args.payloadSizeKb,
@@ -43,13 +31,7 @@ export const resolvers: Resolvers<GraphQLContext> = {
         throw new Error("Failed to submit benchmark");
       }
 
-      return {
-        ...result,
-        environment:
-          result.environment === "Node.js"
-            ? Environment.NodeJs
-            : Environment.Supabase,
-      };
+      return result as any;
     },
   },
 };

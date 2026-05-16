@@ -1,7 +1,7 @@
 import { type DateIso } from "@repo/shared-common";
 import { AbstractRepository } from "@repo/db-core";
 
-export type Environment = "Node.js" | "Supabase";
+export type Environment = "NODE_JS" | "SUPABASE";
 
 export type BenchmarkCreatePayload = {
   visitorId: string;

@@ -35,7 +35,7 @@ export class DrizzleBenchmarkRepository extends AbstractDrizzlePgRepository<
       id: dbRecord.id,
       visitorId: dbRecord.visitorId,
       payloadSizeKb: dbRecord.payloadSizeKb,
-      environment: dbRecord.environment as Environment,
+      environment: dbRecord.environment === "Node.js" ? "NODE_JS" : "SUPABASE",
       totalRoundtripMs: dbRecord.totalRoundtripMs,
       backendParseMs: dbRecord.backendParseMs,
       backendDbInsertMs: dbRecord.backendDbInsertMs,
@@ -58,7 +58,8 @@ export class DrizzleBenchmarkRepository extends AbstractDrizzlePgRepository<
     return {
       ...entityData,
       payloadSizeKb: entityData.payloadSizeKb!,
-      environment: entityData.environment as Environment,
+      environment:
+        entityData.environment === "NODE_JS" ? "Node.js" : "Supabase",
       visitorId: entityData.visitorId!,
       createdAt: entityData.createdAt
         ? new Date(entityData.createdAt)

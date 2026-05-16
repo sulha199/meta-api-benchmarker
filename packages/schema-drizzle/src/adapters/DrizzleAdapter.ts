@@ -26,6 +26,8 @@ export class DrizzleAdapter<
   TUpdate,
   DrizzleRawClient<TDb, TTable>
 > {
+  protected debugSQL: boolean = false;
+
   constructor(
     private readonly db: TDb,
     private readonly table: TTable,
@@ -40,13 +42,18 @@ export class DrizzleAdapter<
   }
 
   async create(data: TInsert): Promise<TSelect> {
-    const result = await this.db
+    const insertQuery = this.db
       .insert(this.table)
       // Drizzle's internal generic type mapping for Inserts is exceptionally complex.
       // We cast data to 'any' here internally, but our external TInsert generic
       // guarantees the caller is still strictly passing the correct types!
-      .values(data as any)
-      .returning();
+      .values(data as any);
+
+    if (this.debugSQL) {
+      console.log("[DrizzleAdapter:create] SQL:", insertQuery.toSQL());
+    }
+
+    const result = await insertQuery.returning();
 
     return result[0] as unknown as TSelect;
   }
@@ -81,8 +88,16 @@ export class DrizzleAdapter<
     // Note: You would also translate `query.where`, `query.limit`, etc., into Drizzle format here
     // drizzleConfig.limit = query.limit;
 
-    // 2. Execute! Drizzle will automatically generate the JSON Aggregation SQL
-    return this.db.query[getTableName(this.table)].findMany(drizzleConfig);
+    // 2. Prepare the query! Drizzle will automatically generate the JSON Aggregation SQL
+    const dbQuery =
+      this.db.query[getTableName(this.table)].findMany(drizzleConfig);
+
+    if (this.debugSQL) {
+      console.log("[DrizzleAdapter:findMany] SQL:", dbQuery.toSQL());
+    }
+
+    // 3. Execute!
+    return await dbQuery;
   }
 
   /**
