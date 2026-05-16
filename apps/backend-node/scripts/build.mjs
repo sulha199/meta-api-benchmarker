@@ -10,12 +10,14 @@ const external = [
   ...Object.keys(devDependencies || {}),
 ];
 
+const isVercel = process.env.VERCEL === "1";
+
 await esbuild.build({
-  entryPoints: ["src/api/graphql.ts"],
+  entryPoints: ["api/graphql.ts"],
   bundle: true,
   platform: "node",
   format: "cjs",
-  outfile: "api/graphql.js",
+  outfile: isVercel ? "api/graphql.ts" : "api/graphql.js",
   external: external.filter((dep) => !dep.startsWith("@repo/")),
   loader: {
     ".graphql": "text",

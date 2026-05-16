@@ -4,13 +4,21 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./models": "./src/models/index.ts",
-    "./adapters": "./src/adapters/index.ts"
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./models": {
+      "types": "./src/models/index.ts",
+      "default": "./src/models/index.ts"
+    },
+    "./adapters": {
+      "types": "./src/adapters/index.ts",
+      "default": "./src/adapters/index.ts"
+    }
   },
   "scripts": {
-    "generate": "drizzle-kit generate",
-    "push": "drizzle-kit push"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@meta/validation-core": "workspace:*"
