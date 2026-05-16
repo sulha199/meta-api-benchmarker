@@ -48,7 +48,7 @@ export class ApiTopologiRepositoryImpl implements IApiTopologiRepository {
     });
   }
   submitBenchmark(
-    createPayload: Omit<BenchmarkEntity, "id" | "createdAt">,
+    createPayload: BenchmarkCreatePayload,
   ): Promise<BenchmarkEntity | null> {
     return this.benchmarkRepo.create({
       ...createPayload,

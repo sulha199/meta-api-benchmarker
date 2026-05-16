@@ -8,7 +8,7 @@
   },
   "scripts": {
     "generate": "graphql-codegen",
-    "build": "tsc && pnpm run generate && node ../../scripts/copy-schema.cjs",
+    "build": "pnpm run generate && tsc  && node ../../scripts/copy-schema.cjs",
     "dev": "tsc --watch"
   },
   "dependencies": {

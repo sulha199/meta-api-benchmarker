@@ -12,8 +12,8 @@ export const resolvers: Resolvers<GraphQLContext> = {
       const { repositories } = context;
       const { apiTopology } = repositories;
       const { postgres } = apiTopology;
-      const { getBenchmarks } = postgres;
-      const benchmarks = await getBenchmarks(args.visitorId);
+
+      const benchmarks = await postgres.getBenchmarks(args.visitorId);
       return benchmarks.map((b) => ({
         ...b,
         environment:
@@ -28,10 +28,9 @@ export const resolvers: Resolvers<GraphQLContext> = {
       const { repositories } = context;
       const { apiTopology } = repositories;
       const { postgres } = apiTopology;
-      const { submitBenchmark } = postgres;
 
       // args.environment will now be "Node.js" or "Supabase" thanks to the Enum mapping above
-      const result = await submitBenchmark({
+      const result = await postgres.submitBenchmark({
         visitorId: args.visitorId,
         payloadSizeKb: args.payloadSizeKb,
         environment: args.environment as any,
