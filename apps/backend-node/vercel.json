@@ -1,3 +1,8 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/graphql" }]
+  "functions": {
+    "api/graphql.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
 }
