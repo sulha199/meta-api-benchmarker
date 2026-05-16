@@ -30,7 +30,7 @@ import articleSchema from "@repo/domain-graphql-ast/schema";
 import visitorSchema from "@repo/domain-visitors/schema";
 import topologySchema from "@repo/domain-api-topology/schema";
 
-import type { MasterGraphQLContext } from "../src/types.js";
+import type { MasterGraphQLContext } from "../types";
 
 const postgresUrl = process.env.POSTGRES_URL ?? "";
 if (!postgresUrl) {
