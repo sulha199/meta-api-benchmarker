@@ -2,7 +2,7 @@
 
 ## 1. Package Purpose
 
-The `backend-node` package is the **Composition Root** of the backend. It is the Long-Running Express server that hosts the Apollo GraphQL endpoint. Its sole architectural responsibility is to instantiate the Infrastructure Adapters (Drizzle, Mongo, Supabase) and inject them into the Pure Domains via Dependency Injection.
+The `backend-node` package is the **Composition Root** of the backend. It is the Node.js/Express application that hosts the Apollo GraphQL endpoint. Its sole architectural responsibility is to instantiate the Infrastructure Adapters (Drizzle, Mongo, Supabase) and inject them into the Pure Domains via Dependency Injection.
 
 ## 2. Core Concepts & Files
 
