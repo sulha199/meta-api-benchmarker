@@ -5,16 +5,28 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.js",
-      "default": "./dist/index.js"
+      "types": "./dist/index.d.ts",
+      "import": {
+        "development": "./src/index.ts",
+        "default": "./dist/index.js"
+      },
+      "require": "./dist/index.js"
     },
     "./models": {
-      "types": "./dist/models/index.js",
-      "default": "./dist/models/index.js"
+      "types": "./dist/models/index.d.ts",
+      "import": {
+        "development": "./src/models/index.ts",
+        "default": "./dist/models/index.js"
+      },
+      "require": "./dist/models/index.js"
     },
     "./adapters": {
-      "types": "./dist/adapters/index.js",
-      "default": "./dist/adapters/index.js"
+      "types": "./dist/adapters/index.d.ts",
+      "import": {
+        "development": "./src/adapters/index.ts",
+        "default": "./dist/adapters/index.js"
+      },
+      "require": "./dist/adapters/index.js"
     }
   },
   "scripts": {

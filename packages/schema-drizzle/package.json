@@ -4,7 +4,14 @@
   "type": "module",
   "private": true,
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": {
+        "development": "./src/index.ts",
+        "default": "./dist/index.js"
+      },
+      "require": "./dist/index.js"
+    }
   },
   "scripts": {
     "generate": "drizzle-kit generate",

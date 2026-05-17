@@ -4,10 +4,38 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./dist/index.js",
-    "./graphql": "./dist/graphql/index.js",
-    "./models": "./dist/models/index.js",
-    "./schema": "./dist/graphql/schema.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": {
+        "development": "./src/index.ts",
+        "default": "./dist/index.js"
+      },
+      "require": "./dist/index.js"
+    },
+    "./graphql": {
+      "types": "./dist/graphql/index.d.ts",
+      "import": {
+        "development": "./src/graphql/index.ts",
+        "default": "./dist/graphql/index.js"
+      },
+      "require": "./dist/graphql/index.js"
+    },
+    "./models": {
+      "types": "./dist/models/index.d.ts",
+      "import": {
+        "development": "./src/models/index.ts",
+        "default": "./dist/models/index.js"
+      },
+      "require": "./dist/models/index.js"
+    },
+    "./schema": {
+      "types": "./dist/graphql/schema.d.ts",
+      "import": {
+        "development": "./src/graphql/schema.graphql",
+        "default": "./dist/graphql/schema.js"
+      },
+      "require": "./dist/graphql/schema.js"
+    }
   },
   "scripts": {
     "generate": "graphql-codegen",

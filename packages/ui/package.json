@@ -4,8 +4,22 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./dist/index.js",
-    "./utils": "./dist/lib/utils.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": {
+        "development": "./src/index.ts",
+        "default": "./dist/index.js"
+      },
+      "require": "./dist/index.js"
+    },
+    "./utils": {
+      "types": "./dist/lib/utils.d.ts",
+      "import": {
+        "development": "./src/lib/utils.ts",
+        "default": "./dist/lib/utils.js"
+      },
+      "require": "./dist/lib/utils.js"
+    }
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",

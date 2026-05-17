@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev start --concurrency=25",
+    "dev": "turbo run dev start --concurrency=25 --filter=@meta/backend-node --filter=frontend-react",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"

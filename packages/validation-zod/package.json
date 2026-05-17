@@ -3,7 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": {
+        "development": "./src/index.ts",
+        "default": "./dist/index.js"
+      },
+      "require": "./dist/index.js"
+    }
   },
   "dependencies": {
     "zod": "^3.23.0",
