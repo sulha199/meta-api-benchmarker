@@ -4,7 +4,7 @@
 
 The API Topology benchmark is designed to measure and visualize the performance differences in network I/O, connection pooling, and throughput under load between two distinct deployment architectures.
 
-Unlike the GraphQL AST benchmark (which tests query efficiency), this benchmark tests **raw infrastructure and connection management** by firing 100 concurrent requests to insert `VisitLog` entities.
+Unlike the GraphQL AST benchmark (which tests query efficiency), this benchmark tests **raw infrastructure and connection management** by firing an automated sweep of requests across multiple payload sizes (1KB to 100KB) to insert `VisitLog` entities.
 
 ## 2. The Competitors
 
@@ -30,11 +30,13 @@ To ensure a fair, apples-to-apples comparison, the frontend generates a single `
 
 ### 3.2 The Web Worker Payload
 
-The frontend Web Worker (`benchmark.worker.ts`) executes the race.
+The frontend Web Worker (`benchmark.worker.ts`) executes the automated sweep.
 
-- It uses `Promise.allSettled` to fire concurrent insertion requests.
+- It iterates through a predefined list of payload sizes.
+- For each size, it fires a series of sequential insertion requests.
 - It measures the round-trip latency for each individual request.
 - It streams `PROGRESS` events back to the React UI to animate the progress bars in real-time.
+- It returns a complete dataset of all request durations and success states upon completion.
 
 ## 4. AI Agent Instructions
 

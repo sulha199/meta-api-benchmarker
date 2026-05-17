@@ -1,12 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   registerSupabaseVisitor,
   registerNodeJsVisitor,
-} from "../utils/visitor";
-import { INITIAL_PROGRESS, type Competitor } from "../config/constants";
-import type { BenchmarkMessage } from "../workers/benchmark.worker";
-import { appStorage } from "../utils/storage";
+} from "../../utils/visitor";
+import { INITIAL_PROGRESS, type Competitor } from "../../config/constants";
+import type {
+  BenchmarkMessage,
+  BenchmarkResult,
+} from "../../workers/benchmark.worker";
+import { appStorage } from "../../utils/storage";
 import { Button, Card } from "@repo/ui";
+import { ApiTopologyPageChart } from "./ApiTopologyPageChart";
+
+const PAYLOAD_SIZES = [1, 5, 10, 25, 50, 100];
+const STORAGE_KEY = "meta_topology_history";
 
 export function ApiTopologyPage() {
   // UI State
@@ -22,6 +29,15 @@ export function ApiTopologyPage() {
   );
   const [progress, setProgress] =
     useState<Record<Competitor, number>>(INITIAL_PROGRESS);
+
+  // Results State
+  const [nodeLatest, setNodeLatest] = useState<
+    { payload: number; duration: number }[]
+  >([]);
+  const [supabaseLatest, setSupabaseLatest] = useState<
+    { payload: number; duration: number }[]
+  >([]);
+  const [historicalData, setHistoricalData] = useState<BenchmarkResult[]>([]);
 
   // 1. Asynchronously load or generate the visitor ID and registration status on mount
   useEffect(() => {
@@ -40,6 +56,10 @@ export function ApiTopologyPage() {
         }
 
         setVisitorId(storedId);
+
+        // Load historical data
+        const history = await appStorage.get(STORAGE_KEY, []);
+        if (history) setHistoricalData(history);
       } catch (error) {
         console.error("Failed to initialize session data:", error);
       } finally {
@@ -49,6 +69,15 @@ export function ApiTopologyPage() {
 
     initializeSession();
   }, []);
+
+  // Compute chart data for Latest Run
+  const latestChartData = useMemo(() => {
+    return PAYLOAD_SIZES.map((size) => ({
+      payload: size,
+      NodeJS: nodeLatest.find((d) => d.payload === size)?.duration,
+      Supabase: supabaseLatest.find((d) => d.payload === size)?.duration,
+    }));
+  }, [nodeLatest, supabaseLatest]);
 
   /**
    * Universal function to start the benchmark
@@ -78,14 +107,21 @@ export function ApiTopologyPage() {
     setProgress((prev) => ({ ...prev, [competitor]: 0 }));
     setActiveCompetitor(competitor);
 
-    // Note: Path updated slightly assuming this file is in src/pages/
     const worker = new Worker(
-      new URL("../workers/benchmark.worker.ts", import.meta.url),
+      new URL("../../workers/benchmark.worker.ts", import.meta.url),
       { type: "module" },
     );
 
     worker.onmessage = (event) => {
-      const { type, progress: currentProgress, results } = event.data;
+      const {
+        type,
+        progress: currentProgress,
+        results,
+      } = event.data as {
+        type: string;
+        progress: number;
+        results: BenchmarkResult[];
+      };
 
       if (type === "PROGRESS") {
         setProgress((prev) => ({
@@ -96,23 +132,48 @@ export function ApiTopologyPage() {
 
       if (type === "COMPLETE") {
         console.log(`Benchmark for ${competitor} finished!`, results);
+
+        // 1. Calculate Averages for latest run
+        const averages = PAYLOAD_SIZES.map((size) => {
+          const pointsForSize = results.filter(
+            (r) => r.payloadSizeKb === size && r.success,
+          );
+          const avg = pointsForSize.length
+            ? pointsForSize.reduce((acc, curr) => acc + curr.duration, 0) /
+              pointsForSize.length
+            : 0;
+          return { payload: size, duration: Math.round(avg) };
+        });
+
+        if (competitor === "Node.js") setNodeLatest(averages);
+        else setSupabaseLatest(averages);
+
+        // 2. Update Historical Data
+        setHistoricalData((prev) => {
+          const updated = [...prev, ...results];
+          // Keep it to a reasonable limit if needed, but for now just save
+          appStorage.set(STORAGE_KEY, updated);
+          return updated;
+        });
+
         setActiveCompetitor(null);
         worker.terminate();
       }
     };
 
-    console.log(`Starting benchmark for ${competitor}...`);
+    console.log(`Starting sweep benchmark for ${competitor}...`);
     worker.postMessage({
       competitor: competitor,
       visitorId,
-      requestCount: 100,
-      payloadSizeKb: 5,
+      requestCount: 10, // 10 requests per payload size for the sweep
+      payloadSizesKb: PAYLOAD_SIZES,
     } satisfies BenchmarkMessage);
   };
 
   const handleResetSession = async () => {
     await appStorage.remove("meta_visitor_id");
     await appStorage.remove("meta_is_registered");
+    await appStorage.remove(STORAGE_KEY);
     window.location.reload();
   };
 
@@ -132,8 +193,7 @@ export function ApiTopologyPage() {
           API Topology Benchmark
         </h2>
         <p className="text-zinc-500 mt-2">
-          Vercel Serverless vs. Supabase (Geolocation needs changes for fair
-          competition)
+          Vercel Serverless (Node.js) vs. Supabase Edge (PostgREST)
         </p>
       </div>
 
@@ -154,7 +214,7 @@ export function ApiTopologyPage() {
             onClick={handleResetSession}
             disabled={activeCompetitor !== null}
           >
-            Reset Session
+            Reset Session & History
           </Button>
         </div>
       </Card>
@@ -167,7 +227,7 @@ export function ApiTopologyPage() {
             <div>
               <h3 className="text-xl font-semibold">Node.js Express</h3>
               <p className="text-sm text-zinc-500 mt-1">
-                Vercel + Neon DB(AWS US East 1 (N. Virginia))
+                Vercel + Neon DB (AWS US East 1)
               </p>
             </div>
             <span className="text-2xl font-bold text-zinc-300 dark:text-zinc-700">
@@ -176,7 +236,6 @@ export function ApiTopologyPage() {
           </div>
 
           <div className="mt-auto space-y-4">
-            {/* Animated Progress Bar */}
             <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-3 overflow-hidden">
               <div
                 className="bg-zinc-900 dark:bg-zinc-100 h-full transition-all duration-300 ease-out"
@@ -191,7 +250,7 @@ export function ApiTopologyPage() {
               variant={activeCompetitor === "Node.js" ? "secondary" : "default"}
             >
               {activeCompetitor === "Node.js"
-                ? "Running Benchmark..."
+                ? "Running Sweep..."
                 : "Start Node.js Race"}
             </Button>
           </div>
@@ -202,7 +261,9 @@ export function ApiTopologyPage() {
           <div className="flex justify-between items-start mb-6">
             <div>
               <h3 className="text-xl font-semibold">Supabase Edge</h3>
-              <p className="text-sm text-zinc-500 mt-1">South Asia (Mumbai)</p>
+              <p className="text-sm text-zinc-500 mt-1">
+                Edge Network (South Asia Mumbai)
+              </p>
             </div>
             <span className="text-2xl font-bold text-zinc-300 dark:text-zinc-700">
               {progress["Supabase"].toFixed(0)}%
@@ -210,7 +271,6 @@ export function ApiTopologyPage() {
           </div>
 
           <div className="mt-auto space-y-4">
-            {/* Animated Progress Bar */}
             <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-3 overflow-hidden">
               <div
                 className="bg-emerald-600 dark:bg-emerald-500 h-full transition-all duration-300 ease-out"
@@ -227,14 +287,18 @@ export function ApiTopologyPage() {
               }
             >
               {activeCompetitor === "Supabase"
-                ? "Running Supabase..."
+                ? "Running Sweep..."
                 : "Start Supabase Race"}
             </Button>
           </div>
         </Card>
       </div>
 
-      
+      {/* Charts Section */}
+      <ApiTopologyPageChart
+        latestChartData={latestChartData}
+        historicalData={historicalData}
+      />
     </div>
   );
 }

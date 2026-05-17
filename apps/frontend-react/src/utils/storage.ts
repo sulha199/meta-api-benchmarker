@@ -1,4 +1,5 @@
-import { type IStorageAdapter, StorageManager } from '@meta/storage'
+import type { BenchmarkResult } from "../workers/benchmark.worker";
+import { type IStorageAdapter, StorageManager } from "@meta/storage";
 
 // ==========================================
 // 1. TYPE DEFINITION (SCHEMA)
@@ -7,6 +8,7 @@ import { type IStorageAdapter, StorageManager } from '@meta/storage'
 export interface AppStorageSchema {
   meta_visitor_id: string;
   meta_is_registered: boolean;
+  meta_topology_history: BenchmarkResult[];
 }
 
 // ==========================================
@@ -29,7 +31,10 @@ export class LocalStorageAdapter<Schema> implements IStorageAdapter<Schema> {
     }
   }
 
-  async setItem<K extends keyof Schema>(key: K, value: Schema[K]): Promise<void> {
+  async setItem<K extends keyof Schema>(
+    key: K,
+    value: Schema[K],
+  ): Promise<void> {
     const serializedData = JSON.stringify(value);
     localStorage.setItem(String(key), serializedData);
   }
@@ -44,5 +49,5 @@ export class LocalStorageAdapter<Schema> implements IStorageAdapter<Schema> {
 // ==========================================
 // Export a ready-to-use instance for the entire application
 export const appStorage = new StorageManager<AppStorageSchema>(
-  new LocalStorageAdapter<AppStorageSchema>()
+  new LocalStorageAdapter<AppStorageSchema>(),
 );

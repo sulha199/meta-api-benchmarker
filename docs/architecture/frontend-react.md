@@ -52,11 +52,14 @@ A core metric used across these charts is the **Query Complexity Score** (calcul
 The `ApiTopologyPage` tests raw network throughput and database connection overhead between two distinct cloud topologies.
 
 - **Session Management:** Uses `appStorage` to persist a universal `visitorId`.
+- **Historical Data:** Persists all local benchmark data points to `appStorage` (`meta_topology_history`), allowing for long-term performance trend analysis.
 - **Universal Registration:** Before running a benchmark, it ensures the `visitorId` is registered in both the Node.js/Neon and Supabase ecosystems via a synchronized `Promise.all` call.
 - **Real-time Visualization:**
   - **Progress Bars:** Animated Tailwind CSS bars that reflect the percentage of successful requests completed by the Web Worker.
   - **Competitor Cards:** Displays the infrastructure details (e.g., "Vercel + Neon DB", "Supabase Edge") and their respective cloud regions.
-- **Non-Blocking Execution:** Leverages the `benchmark.worker.ts` to fire 100 concurrent requests without impacting the responsiveness of the UI thread.
+  - **Latest Sweep (Line Chart):** Visualizes how latency scales as payload size increases (1KB to 100KB) for the current run.
+  - **Local History (Scatter Chart):** Plots every individual data point captured locally to visualize jitter and performance variance over time.
+- **Non-Blocking Execution:** Leverages the `benchmark.worker.ts` to execute an automated payload sweep without impacting the responsiveness of the UI thread.
 
 ## 3. AI Agent Instructions
 

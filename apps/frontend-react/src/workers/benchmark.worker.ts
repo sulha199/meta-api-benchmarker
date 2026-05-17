@@ -13,125 +13,134 @@ export type BenchmarkMessage = {
   competitor: Competitor;
   visitorId: string;
   requestCount: number;
-  payloadSizeKb: number;
+  payloadSizesKb: number[];
 };
 
 export type BenchmarkResult = {
   success: boolean;
   /** Duration in miliseconds */
   duration: number;
+  payloadSizeKb: number;
+  competitor: Competitor;
 };
 
 /**
  * Web Worker for generating load and measuring API performance.
  */
 self.onmessage = async (event: MessageEvent<BenchmarkMessage>) => {
-  const { competitor, visitorId, requestCount, payloadSizeKb } = event.data;
+  const { competitor, visitorId, requestCount, payloadSizesKb } = event.data;
 
-  // 1. Generate the dummy payload
-  // In JavaScript, a standard ASCII character takes 1 byte.
-  // 1 KB = 1024 bytes. We repeat the character 'A' to reach the desired KB size.
-  const dummyPayload = "A".repeat(payloadSizeKb * 1024);
+  const totalRequests = payloadSizesKb.length * requestCount;
+  let completedRequests = 0;
   const results: BenchmarkResult[] = [];
 
-  for (let i = 0; i < requestCount; i++) {
-    const startTime = performance.now();
+  for (const size of payloadSizesKb) {
+    // 1. Generate the dummy payload per size
+    const dummyPayload = "A".repeat(size * 1024);
 
-    try {
-      if (competitor === "Node.js") {
-        // Send request to Vercel Serverless
-        const response = await fetch(NODE_GRAPHQL_URL, {
-          method: "POST",
-          headers: NODE_HEADERS,
-          body: JSON.stringify({
-            query: `
-              mutation SubmitBenchmark(
-                $visitorId: ID!,
-                $environment: Environment!,
-                $payloadSizeKb: Int!,
-                $dummyPayload: String,
-                $totalRoundtripMs: Int
-              ) {
-                submitBenchmark(
-                  visitorId: $visitorId,
-                  environment: $environment,
-                  payloadSizeKb: $payloadSizeKb,
-                  dummyPayload: $dummyPayload,
-                  totalRoundtripMs: $totalRoundtripMs
+    for (let i = 0; i < requestCount; i++) {
+      const startTime = performance.now();
+
+      try {
+        if (competitor === "Node.js") {
+          // Send request to Vercel Serverless
+          const response = await fetch(NODE_GRAPHQL_URL, {
+            method: "POST",
+            headers: NODE_HEADERS,
+            body: JSON.stringify({
+              query: `
+                mutation SubmitBenchmark(
+                  $visitorId: ID!,
+                  $environment: Environment!,
+                  $payloadSizeKb: Int!,
+                  $dummyPayload: String,
+                  $totalRoundtripMs: Int
                 ) {
-                  id
-                }
-              }
-            `,
-            variables: {
-              visitorId: visitorId,
-              environment: "NODE_JS",
-              payloadSizeKb: payloadSizeKb,
-              dummyPayload: dummyPayload,
-              // We calculate a preliminary roundtrip time here (though actual is calculated after)
-              // For a true benchmark, we will track the time after the await
-              totalRoundtripMs: 0,
-            },
-          }),
-        });
-
-        // Wait for the JSON response to ensure the request is completely finished
-        await response.json();
-      } else if (competitor === "Supabase") {
-        // Send request directly to Supabase GraphQL API
-        const response = await fetch(SUPABASE_GRAPHQL_ENDPOINT, {
-          method: "POST",
-          headers: SUPABASE_HEADERS,
-          body: JSON.stringify({
-            query: `
-              mutation InsertBenchmark(
-                $visitorId: UUID!,
-                $environment: environment!,
-                $payloadSizeKb: Int!,
-                $totalRoundtripMs: Int
-              ) {
-                insertIntobenchmarksCollection(objects: [{
-                  visitor_id: $visitorId,
-                  environment: $environment,
-                  payload_size_kb: $payloadSizeKb,
-                  total_roundtrip_ms: $totalRoundtripMs
-                }]) {
-                  records {
+                  submitBenchmark(
+                    visitorId: $visitorId,
+                    environment: $environment,
+                    payloadSizeKb: $payloadSizeKb,
+                    dummyPayload: $dummyPayload,
+                    totalRoundtripMs: $totalRoundtripMs
+                  ) {
                     id
                   }
                 }
-              }
-            `,
-            variables: {
-              visitorId: visitorId,
-              environment: "Supabase",
-              payloadSizeKb: payloadSizeKb,
-              totalRoundtripMs: 0,
-            },
-          }),
+              `,
+              variables: {
+                visitorId: visitorId,
+                environment: "NODE_JS",
+                payloadSizeKb: size,
+                dummyPayload: dummyPayload,
+                totalRoundtripMs: 0,
+              },
+            }),
+          });
+
+          await response.json();
+        } else if (competitor === "Supabase") {
+          // Send request directly to Supabase GraphQL API
+          const response = await fetch(SUPABASE_GRAPHQL_ENDPOINT, {
+            method: "POST",
+            headers: SUPABASE_HEADERS,
+            body: JSON.stringify({
+              query: `
+                mutation InsertBenchmark(
+                  $visitorId: UUID!,
+                  $environment: environment!,
+                  $payloadSizeKb: Int!,
+                  $totalRoundtripMs: Int
+                ) {
+                  insertIntobenchmarksCollection(objects: [{
+                    visitor_id: $visitorId,
+                    environment: $environment,
+                    payload_size_kb: $payloadSizeKb,
+                    total_roundtrip_ms: $totalRoundtripMs
+                  }]) {
+                    records {
+                      id
+                    }
+                  }
+                }
+              `,
+              variables: {
+                visitorId: visitorId,
+                environment: "Supabase",
+                payloadSizeKb: size,
+                totalRoundtripMs: 0,
+              },
+            }),
+          });
+
+          await response.json();
+        }
+
+        const endTime = performance.now();
+        const durationMs = Math.round(endTime - startTime);
+
+        results.push({
+          success: true,
+          duration: durationMs,
+          payloadSizeKb: size,
+          competitor,
         });
 
-        await response.json();
+        completedRequests++;
+        self.postMessage({
+          type: "PROGRESS",
+          progress: (completedRequests / totalRequests) * 100,
+          currentRoundtrip: durationMs,
+        });
+      } catch (error) {
+        console.error("Worker request failed:", error);
+        results.push({
+          success: false,
+          duration: Math.round(performance.now() - startTime),
+          payloadSizeKb: size,
+          competitor,
+        });
+        completedRequests++;
       }
-
-      // Calculate the total time taken from request start to response parsing
-      const endTime = performance.now();
-      const durationMs = Math.round(endTime - startTime);
-
-      results.push({ success: true, duration: durationMs });
-
-      // Report progress back to the main React thread
-      self.postMessage({
-        type: "PROGRESS",
-        progress: ((i + 1) / requestCount) * 100,
-        currentRoundtrip: durationMs,
-      });
-    } catch (error) {
-      console.error("Worker request failed:", error);
-      results.push({
-        success: false,
-        duration: Math.round(performance.now() - startTime),
-      });
     }
   }
 
