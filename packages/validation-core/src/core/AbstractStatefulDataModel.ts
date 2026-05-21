@@ -1,13 +1,18 @@
-import { AbstractStatelessDataModel } from './AbstractStatelessDataModel';
-import { setImmutable } from './utils';
-import type { Path, PathValue, ValidationResult, ArrayElement } from './types';
+import { AbstractStatelessDataModel } from "./AbstractStatelessDataModel";
+import { setImmutable } from "./utils";
+import type { Path, PathValue, ValidationResult, ArrayElement } from "./types";
 
 type DataChangeListenerFn = (newVal: any, oldVal: any) => void;
 type ValidationChangeListenerFn = (result: ValidationResult) => void;
 
-export abstract class AbstractStatefulDataModel<T extends Record<string, any>> extends AbstractStatelessDataModel<T> {
+export abstract class AbstractStatefulDataModel<
+  T extends Record<string, any>,
+> extends AbstractStatelessDataModel<T> {
   protected _value: Partial<T> = {};
-  protected _lastValidationResult: ValidationResult = { isValid: true, errors: [] };
+  protected _lastValidationResult: ValidationResult = {
+    isValid: true,
+    errors: [],
+  };
 
   protected _dataChangeListeners = new Map<string, DataChangeListenerFn[]>();
   protected _validationChangeListeners: ValidationChangeListenerFn[] = [];
@@ -31,11 +36,17 @@ export abstract class AbstractStatefulDataModel<T extends Record<string, any>> e
 
   public onDataChange<P extends Path<T>>(
     path: P,
-    callback: (newVal: PathValue<T, P> | undefined, oldVal: PathValue<T, P> | undefined) => void
+    callback: (
+      newVal: PathValue<T, P> | undefined,
+      oldVal: PathValue<T, P> | undefined,
+    ) => void,
   ) {
     const pathStr = path as string;
-    if (!this._dataChangeListeners.has(pathStr)) this._dataChangeListeners.set(pathStr, []);
-    this._dataChangeListeners.get(pathStr)!.push(callback as DataChangeListenerFn);
+    if (!this._dataChangeListeners.has(pathStr))
+      this._dataChangeListeners.set(pathStr, []);
+    this._dataChangeListeners
+      .get(pathStr)!
+      .push(callback as DataChangeListenerFn);
   }
 
   public onValidationChange(callback: ValidationChangeListenerFn) {
@@ -44,42 +55,62 @@ export abstract class AbstractStatefulDataModel<T extends Record<string, any>> e
 
   // --- Core Mutation Method ---
 
-  public async setValueAt<P extends Path<T>>(path: P, value: PathValue<T, P>): Promise<ValidationResult> {
+  public async setValueAt<P extends Path<T>>(
+    path: P,
+    value: PathValue<T, P>,
+  ): Promise<{ result: ValidationResult; modifiedPaths: string[] }> {
     const pathStr = path as string;
 
     // Early return if the value hasn't actually changed
     if (this.getValueAt(path) === value) {
-      return this._lastValidationResult;
+      return { result: this._lastValidationResult, modifiedPaths: [] };
     }
 
-    const oldTree = this._value;
-    let nextTree = setImmutable(this._value, pathStr, value);
-
-    // 1. Apply targeted transformers synchronously before firing data events
-    nextTree = this._applyTargetedTransformers(nextTree, pathStr);
+    const oldTreeBeforeAll = this._value;
+    const nextTree = setImmutable(this._value, pathStr, value);
 
     this._value = nextTree;
 
-    // 2. Fire Data Event (Sync)
-    this._fireDataChangeListeners(oldTree, nextTree);
+    // Fire Data Event (Sync), then await validation which includes transformers
+    this._fireDataChangeListeners(oldTreeBeforeAll, nextTree, [pathStr]);
 
-    // 3. Await Validation Event (Async)
-    return await this.validateCurrentState();
+    const { result, modifiedPaths: transformerPaths } =
+      await this.validateCurrentState();
+
+    // Calculate global NET modified paths relative to the very start of the operation.
+    // This captures the manual change AND all subsequent transformer effects.
+    const allTouchedPaths = new Set<string>([pathStr, ...transformerPaths]);
+    const netModifiedPaths = Array.from(allTouchedPaths).filter((p) => {
+      return (
+        this._extractValue(oldTreeBeforeAll, p) !==
+        this._extractValue(this._value, p)
+      );
+    });
+
+    return { result, modifiedPaths: netModifiedPaths };
   }
 
   // --- Array Operations ---
 
   public async pushValueAt<P extends Path<T>>(
     path: P,
-    item: PathValue<T, P> extends readonly unknown[] ? ArrayElement<PathValue<T, P>> : never
-  ): Promise<ValidationResult> {
+    item: PathValue<T, P> extends readonly unknown[]
+      ? ArrayElement<PathValue<T, P>>
+      : never,
+  ): Promise<{ result: ValidationResult; modifiedPaths: string[] }> {
     const arr = (this.getValueAt(path) || []) as any[];
     return await this.setValueAt(path, [...arr, item] as any);
   }
 
-  public async removeValueAt<P extends Path<T>>(path: P, index: number): Promise<ValidationResult> {
+  public async removeValueAt<P extends Path<T>>(
+    path: P,
+    index: number,
+  ): Promise<{ result: ValidationResult; modifiedPaths: string[] }> {
     const arr = (this.getValueAt(path) || []) as any[];
-    return await this.setValueAt(path, arr.filter((_, i) => i !== index) as any);
+    return await this.setValueAt(
+      path,
+      arr.filter((_, i) => i !== index) as any,
+    );
   }
 
   // --- Stateful Validation Pipeline ---
@@ -87,15 +118,22 @@ export abstract class AbstractStatefulDataModel<T extends Record<string, any>> e
   /**
    * Triggers the parent stateless validation pipeline using the current internal state.
    */
-  public async validateCurrentState(): Promise<ValidationResult> {
+  public async validateCurrentState(): Promise<{
+    result: ValidationResult;
+    modifiedPaths: string[];
+  }> {
     // Call the lightning-fast parent method, which also applies global transformers
-    const { result: newResult, data: transformedData } = await super.validate(this._value);
+    const {
+      result: newResult,
+      data: transformedData,
+      modifiedPaths,
+    } = await super.validate(this._value);
 
     // If super.validate applied global transformers that mutated the tree, update state!
     if (this._value !== transformedData) {
-        const oldTree = this._value;
-        this._value = transformedData;
-        this._fireDataChangeListeners(oldTree, transformedData);
+      const oldTree = this._value;
+      this._value = transformedData;
+      this._fireDataChangeListeners(oldTree, transformedData, modifiedPaths);
     }
 
     const isValidationChanged =
@@ -106,57 +144,48 @@ export abstract class AbstractStatefulDataModel<T extends Record<string, any>> e
 
     // Fire Validation Event
     if (isValidationChanged) {
-      this._validationChangeListeners.forEach(cb => cb(this._lastValidationResult));
+      this._validationChangeListeners.forEach((cb) =>
+        cb(this._lastValidationResult),
+      );
     }
 
-    return this._lastValidationResult;
+    return {
+      result: this._lastValidationResult,
+      modifiedPaths,
+    };
   }
 
   public getErrorsAt<P extends Path<T>>(path: P): string[] {
     return this._lastValidationResult.errors
-      .filter(e => e.path === path || e.path.startsWith(`${path as string}.`))
-      .map(e => e.message);
+      .filter((e) => e.path === path || e.path.startsWith(`${path as string}.`))
+      .map((e) => e.message);
   }
 
   // --- Internal Helpers ---
 
-  /**
-   * Applies transformers selectively only to paths affected by a mutation.
-   * This saves computation cycles compared to running the entire global transformer tree.
-   */
-  private _applyTargetedTransformers(tree: Partial<T>, triggerPath: string): Partial<T> {
-    let updatedTree = tree;
-
-    this._transformers.forEach((fns, targetPath) => {
-      // Check if the change at triggerPath affects the targetPath
-      const isAffected = targetPath === triggerPath ||
-                         targetPath.startsWith(`${triggerPath}.`) ||
-                         triggerPath.startsWith(`${targetPath}.`);
-
-      if (isAffected) {
-        const currentVal = this._extractValue(updatedTree, targetPath);
-        let newVal = currentVal;
-
-        for (const fn of fns) {
-          newVal = fn(newVal);
-        }
-
-        if (newVal !== currentVal) {
-          updatedTree = setImmutable(updatedTree, targetPath, newVal);
-        }
-      }
-    });
-
-    return updatedTree;
-  }
-
-  private _fireDataChangeListeners(oldTree: Partial<T>, newTree: Partial<T>) {
+  private _fireDataChangeListeners(
+    oldTree: Partial<T>,
+    newTree: Partial<T>,
+    modifiedPaths?: string[],
+  ) {
     this._dataChangeListeners.forEach((callbacks, listenPath) => {
+      // Optimization: If modifiedPaths is provided, skip listeners that couldn't have changed.
+      // A listener is affected if its path is a parent, child, or equal to a modified path.
+      if (modifiedPaths) {
+        const isAffected = modifiedPaths.some(
+          (mp) =>
+            listenPath === mp ||
+            mp.startsWith(listenPath + ".") ||
+            listenPath.startsWith(mp + "."),
+        );
+        if (!isAffected) return;
+      }
+
       const oldVal = this._extractValue(oldTree, listenPath);
       const newVal = this._extractValue(newTree, listenPath);
 
       if (oldVal !== newVal) {
-        callbacks.forEach(cb => cb(newVal, oldVal));
+        callbacks.forEach((cb) => cb(newVal, oldVal));
       }
     });
   }

@@ -1,11 +1,24 @@
-import type { ValidationResult, CustomValidator, Path, PathValue } from './types';
-import { setImmutable } from './utils';
+import type {
+  ValidationResult,
+  CustomValidator,
+  Path,
+  PathValue,
+  ValueTransformer,
+} from "./types";
+import { setImmutable } from "./utils";
 
-type TransformerFn = (val: any) => any;
-
-export abstract class AbstractStatelessDataModel<T extends Record<string, any>> {
+export abstract class AbstractStatelessDataModel<
+  T extends Record<string, any>,
+> {
   protected _customValidators: CustomValidator<T>[] = [];
-  protected _transformers = new Map<string, TransformerFn[]>();
+  protected _beforeValidateTransformers = new Map<
+    string,
+    ((value: any) => Promise<any>)[]
+  >();
+  protected _afterValidateTransformers = new Map<
+    string,
+    ((value: any, vr: ValidationResult, bvr: any) => Promise<any>)[]
+  >();
 
   protected abstract performLibraryValidation(data: unknown): ValidationResult;
 
@@ -15,13 +28,27 @@ export abstract class AbstractStatelessDataModel<T extends Record<string, any>> 
     this._customValidators.push(v);
   }
 
-  public addTransformer<P extends Path<T>>(
+  public addValueTransformer<P extends Path<T>>(
     path: P,
-    transformer: (val: PathValue<T, P> | undefined) => PathValue<T, P>
+    transformer: ValueTransformer<PathValue<T, P>>,
   ) {
     const pathStr = path as string;
-    if (!this._transformers.has(pathStr)) this._transformers.set(pathStr, []);
-    this._transformers.get(pathStr)!.push(transformer as TransformerFn);
+    if (transformer.trigger === "beforeValidate") {
+      if (!this._beforeValidateTransformers.has(pathStr)) {
+        this._beforeValidateTransformers.set(pathStr, []);
+      }
+      this._beforeValidateTransformers
+        .get(pathStr)!
+        .push(transformer.handler as any);
+    } else {
+      // afterValidate
+      if (!this._afterValidateTransformers.has(pathStr)) {
+        this._afterValidateTransformers.set(pathStr, []);
+      }
+      this._afterValidateTransformers
+        .get(pathStr)!
+        .push(transformer.handler as any);
+    }
   }
 
   // --- Core Stateless Pipeline ---
@@ -29,18 +56,28 @@ export abstract class AbstractStatelessDataModel<T extends Record<string, any>> 
   /**
    * Takes raw HTTP/GraphQL input, transforms it, validates it, and returns both.
    */
-  public async validate(rawData: unknown): Promise<{ result: ValidationResult; data: Partial<T> }> {
-    // 1. Apply Transformers to the entire payload first
-    const transformedData = this._applyAllTransformers(rawData as Partial<T>);
+  public async validate(rawData: unknown): Promise<{
+    result: ValidationResult;
+    data: Partial<T>;
+    modifiedPaths: string[];
+  }> {
+    const valueBeforeTransformers = rawData as Partial<T>;
+    const modifiedPaths = new Set<string>();
+
+    // 1. Apply 'before' transformers
+    const { tree: dataAfterBefore, modifiedPaths: beforePaths } =
+      await this._applyAllBeforeValidateTransformers(valueBeforeTransformers);
+
+    beforePaths.forEach((p) => modifiedPaths.add(p));
 
     // 2. Run Synchronous Schema Validation (Ajv/Zod)
-    const libResult = this.performLibraryValidation(transformedData);
+    const libResult = this.performLibraryValidation(dataAfterBefore);
     let allErrors = [...libResult.errors];
 
     // 3. Run Async Custom Validators Concurrently
     if (this._customValidators.length > 0) {
       const customResults = await Promise.all(
-        this._customValidators.map(v => v(transformedData as T))
+        this._customValidators.map((v) => v(dataAfterBefore as T)),
       );
 
       for (const err of customResults) {
@@ -48,9 +85,36 @@ export abstract class AbstractStatelessDataModel<T extends Record<string, any>> 
       }
     }
 
+    const validationResult = {
+      isValid: allErrors.length === 0,
+      errors: allErrors,
+    };
+
+    // 4. Apply 'after' transformers
+    const { tree: finalData, modifiedPaths: afterPaths } =
+      await this._applyAllAfterValidateTransformers(
+        dataAfterBefore,
+        validationResult,
+        valueBeforeTransformers,
+      );
+
+    afterPaths.forEach((p) => modifiedPaths.add(p));
+
+    // 5. Final Path Sanity Check
+    // We double-check the 'modifiedPaths' set to ensure that paths that were
+    // temporarily modified but then restored (e.g. on validation failure) are removed.
+    // This also handles edge cases where a transformer might return a new reference
+    // for an identical value, which shouldn't count as a "modification" for the caller.
+    const finalModifiedPaths = Array.from(modifiedPaths).filter((p) => {
+      const originalValue = this._extractValue(valueBeforeTransformers, p);
+      const finalValue = this._extractValue(finalData, p);
+      return originalValue !== finalValue;
+    });
+
     return {
-      result: { isValid: allErrors.length === 0, errors: allErrors },
-      data: transformedData
+      result: validationResult,
+      data: finalData,
+      modifiedPaths: finalModifiedPaths,
     };
   }
 
@@ -58,30 +122,55 @@ export abstract class AbstractStatelessDataModel<T extends Record<string, any>> 
 
   protected _extractValue(tree: any, path: string): any {
     if (!tree) return undefined;
-    return path.split('.').reduce((acc, part) => acc && acc[part], tree);
+    return path.split(".").reduce((acc, part) => acc && acc[part], tree);
   }
 
-  /**
-   * Stateless Transformer Execution:
-   * Iterates through all registered transformers and applies them to the raw payload.
-   */
-  private _applyAllTransformers(data: Partial<T>): Partial<T> {
+  private async _applyAllBeforeValidateTransformers(
+    data: Partial<T>,
+  ): Promise<{ tree: Partial<T>; modifiedPaths: string[] }> {
     let updatedTree = data;
+    const modifiedPaths: string[] = [];
 
-    this._transformers.forEach((fns, targetPath) => {
+    for (const [
+      targetPath,
+      fns,
+    ] of this._beforeValidateTransformers.entries()) {
       const currentVal = this._extractValue(updatedTree, targetPath);
       let newVal = currentVal;
-
       for (const fn of fns) {
-        newVal = fn(newVal);
+        newVal = await fn(newVal);
       }
-
-      // Only apply immutable update if the transformer ACTUALLY mutated the value
       if (newVal !== currentVal) {
         updatedTree = setImmutable(updatedTree, targetPath, newVal);
+        modifiedPaths.push(targetPath);
       }
-    });
+    }
+    return { tree: updatedTree, modifiedPaths };
+  }
 
-    return updatedTree;
+  private async _applyAllAfterValidateTransformers(
+    data: Partial<T>,
+    vr: ValidationResult,
+    valueBeforeTransformers: Partial<T>,
+  ): Promise<{ tree: Partial<T>; modifiedPaths: string[] }> {
+    let updatedTree = data;
+    const modifiedPaths: string[] = [];
+
+    for (const [targetPath, fns] of this._afterValidateTransformers.entries()) {
+      const currentVal = this._extractValue(updatedTree, targetPath);
+      const originalVal = this._extractValue(
+        valueBeforeTransformers,
+        targetPath,
+      );
+      let newVal = currentVal;
+      for (const fn of fns) {
+        newVal = await fn(newVal, vr, originalVal);
+      }
+      if (newVal !== currentVal) {
+        updatedTree = setImmutable(updatedTree, targetPath, newVal);
+        modifiedPaths.push(targetPath);
+      }
+    }
+    return { tree: updatedTree, modifiedPaths };
   }
 }
