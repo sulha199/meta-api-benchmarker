@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ZodModelAdapter } from "@repo/validation-zod";
+import { ZodStatefulModelAdapter } from "@repo/validation-zod";
 
 /**
  * Zod Schema for UI Theme Configuration.
@@ -23,7 +23,7 @@ export type ThemeConfig = z.infer<typeof ThemeConfigSchema>;
  * ThemeConfigModel class.
  * Used by the Frontend to manage UI state with built-in validation.
  */
-export class ThemeConfigModel extends ZodModelAdapter<ThemeConfig> {
+export class ThemeConfigModel extends ZodStatefulModelAdapter<ThemeConfig> {
   constructor(initialData?: Partial<ThemeConfig>) {
     super(ThemeConfigSchema, initialData);
   }

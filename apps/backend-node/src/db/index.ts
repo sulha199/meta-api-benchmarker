@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
-import { allSchema } from "@repo/schema-drizzle";
+import { allSchema } from "@repo/adapter-drizzle";
 
 /**
  * Initialize the Neon serverless HTTP driver.

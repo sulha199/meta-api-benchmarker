@@ -1,3 +1,4 @@
+import {} from "@repo/shared-common";
 import { QueryCriteria, DataQueryPlan } from "@repo/db-core";
 import type { IDatabaseAdapter } from "@repo/db-core/adapters";
 import { eq, getTableName } from "drizzle-orm";
@@ -119,7 +120,7 @@ export class DrizzleAdapter<
       for (const [relationName, childPlan] of Object.entries(plan.relations)) {
         if (childPlan) {
           // Recursive compilation for deeply nested relations
-          config.with[relationName] = this.buildDrizzleConfig(childPlan as any);
+          config.with[relationName] = this.buildDrizzleConfig(childPlan);
         }
       }
     }

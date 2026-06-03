@@ -41,8 +41,8 @@ The system isolates its benchmarking features into dedicated domains. See their 
 
 ### Infrastructure Adapters (The Edge)
 
-- `@repo/schema-drizzle`: Postgres implementation. Translates `DataQueryPlan` into Drizzle's `db.query.*` Relational API.
-- `@repo/schema-mongo`: MongoDB implementation. Translates `DataQueryPlan` into Mongoose's `.select().populate()`.
+- `@repo/adapter-drizzle`: Postgres implementation. Translates `DataQueryPlan` into Drizzle's `db.query.*` Relational API.
+- `@repo/adapter-mongo`: MongoDB implementation. Translates `DataQueryPlan` into Mongoose's `.select().populate()`.
 - `@repo/validation-zod`: Implements the stateful validation engine using Zod (Frontend focus).
 - `@repo/validation-ajv`: Implements the stateless validation engine using Ajv (Backend focus).
 

@@ -43,5 +43,5 @@ The frontend Web Worker (`benchmark.worker.ts`) executes the automated sweep.
 When modifying or interacting with the API Topology benchmark (frontend or backend), the AI must follow these rules:
 
 1. **Maintain Benchmark Integrity:** Do not introduce artificial delays (`setTimeout`) or caching mechanisms (like Redis) into either pipeline. This is a raw test of HTTP and Database connection overhead.
-2. **Isolate Connection Logic:** Ensure the Drizzle connection pool to NeonDB (`@repo/schema-drizzle`) is instantiated exactly once at the Composition Root (`apps/backend-node/server.ts`) to accurately represent a long-running server.
+2. **Isolate Connection Logic:** Ensure the Drizzle connection pool to NeonDB (`@repo/adapter-drizzle`) is instantiated exactly once at the Composition Root (`apps/backend-node/server.ts`) to accurately represent a long-running server.
 3. **Handle Concurrency Gracefully:** If adding new metrics (like error rates), ensure the Web Worker catches network failures or HTTP 429 (Too Many Requests) errors without crashing the entire benchmark suite.

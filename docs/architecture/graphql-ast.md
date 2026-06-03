@@ -17,7 +17,7 @@ This feature compares two specific data-fetching strategies using the `@repo/dom
 
 - **Mechanism:** Intercepts the `GraphQLResolveInfo` object _before_ any database calls are made.
 - **The `DataQueryPlan`:** The `@repo/graphql-utils` package translates the AST into a strict JSON tree of requested fields and relations.
-- **The Execution:** The database adapters (`@repo/schema-drizzle` / `@repo/schema-mongo`) natively compile this plan into a single, exact query. It fetches _only_ the bytes requested.
+- **The Execution:** The database adapters (`@repo/adapter-drizzle` / `@repo/adapter-mongo`) natively compile this plan into a single, exact query. It fetches _only_ the bytes requested.
 
 ## 3. Core Metrics & Terminology
 

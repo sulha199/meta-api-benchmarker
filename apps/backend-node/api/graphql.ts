@@ -17,8 +17,8 @@ import {
   DrizzleBenchmarkRepository,
   DrizzleVisitorRepository,
   allSchema as drizzleSchema, // Your combined Drizzle schemas
-} from "@repo/schema-drizzle";
-import { MongoArticleRepository } from "@repo/schema-mongo";
+} from "@repo/adapter-drizzle";
+import { MongoArticleRepository } from "@repo/adapter-mongo";
 
 // 2. Import Pure Domains
 import { graphql as articleGraphql } from "@repo/domain-graphql-ast";
