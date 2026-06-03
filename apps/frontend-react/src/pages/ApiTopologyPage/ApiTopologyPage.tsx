@@ -1,8 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import {
-  registerSupabaseVisitor,
-  registerNodeJsVisitor,
-} from "../../utils/visitor";
 import { INITIAL_PROGRESS, type Competitor } from "../../config/constants";
 import type {
   BenchmarkMessage,
@@ -11,17 +7,19 @@ import type {
 import { appStorage } from "../../utils/storage";
 import { Button, Card } from "@repo/ui";
 import { ApiTopologyPageChart } from "./ApiTopologyPageChart";
+import { useSession } from "../../contexts/SessionContext";
 
 const PAYLOAD_SIZES = [1, 5, 10, 25, 50, 100];
 const STORAGE_KEY = "meta_topology_history";
 
 export function ApiTopologyPage() {
-  // UI State
-  const [isInitializing, setIsInitializing] = useState<boolean>(true);
-
-  // Data State
-  const [visitorId, setVisitorId] = useState<string>("");
-  const [isRegistered, setIsRegistered] = useState<boolean>(false);
+  const {
+    visitorId,
+    isRegistered,
+    isInitializing,
+    registerVisitor,
+    resetSession,
+  } = useSession();
 
   // Benchmark State
   const [activeCompetitor, setActiveCompetitor] = useState<Competitor | null>(
@@ -39,35 +37,17 @@ export function ApiTopologyPage() {
   >([]);
   const [historicalData, setHistoricalData] = useState<BenchmarkResult[]>([]);
 
-  // 1. Asynchronously load or generate the visitor ID and registration status on mount
+  // 1. Load historical data on mount
   useEffect(() => {
-    const initializeSession = async () => {
+    const loadHistory = async () => {
       try {
-        const storedRegStatus = await appStorage.get(
-          "meta_is_registered",
-          false,
-        );
-        setIsRegistered(storedRegStatus || false);
-
-        let storedId = await appStorage.get("meta_visitor_id");
-        if (!storedId) {
-          storedId = crypto.randomUUID();
-          await appStorage.set("meta_visitor_id", storedId);
-        }
-
-        setVisitorId(storedId);
-
-        // Load historical data
         const history = await appStorage.get(STORAGE_KEY, []);
         if (history) setHistoricalData(history);
       } catch (error) {
-        console.error("Failed to initialize session data:", error);
-      } finally {
-        setIsInitializing(false);
+        console.error("Failed to load historical data:", error);
       }
     };
-
-    initializeSession();
+    loadHistory();
   }, []);
 
   // Compute chart data for Latest Run
@@ -89,15 +69,8 @@ export function ApiTopologyPage() {
     }
 
     if (!isRegistered) {
-      console.log(`Registering universal Visitor ID: ${visitorId}...`);
       try {
-        await Promise.all([
-          registerNodeJsVisitor(visitorId),
-          registerSupabaseVisitor(visitorId),
-        ]);
-        setIsRegistered(true);
-        await appStorage.set("meta_is_registered", true);
-        console.log("Successfully registered in both ecosystems!");
+        await registerVisitor();
       } catch (error) {
         console.error("Failed to register visitor:", error);
         return;
@@ -170,13 +143,6 @@ export function ApiTopologyPage() {
     } satisfies BenchmarkMessage);
   };
 
-  const handleResetSession = async () => {
-    await appStorage.remove("meta_visitor_id");
-    await appStorage.remove("meta_is_registered");
-    await appStorage.remove(STORAGE_KEY);
-    window.location.reload();
-  };
-
   if (isInitializing) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -211,7 +177,7 @@ export function ApiTopologyPage() {
           <Button
             variant="destructive"
             size="sm"
-            onClick={handleResetSession}
+            onClick={resetSession}
             disabled={activeCompetitor !== null}
           >
             Reset Session & History

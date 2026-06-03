@@ -36,10 +36,11 @@ export class MongoAdapter<
       for (const [relationName, childPlan] of Object.entries(plan.relations)) {
         if (!childPlan) continue;
 
+        const typedChildPlan = childPlan as any;
         const populateOptions: PopulateOptions = { path: relationName };
 
-        if (childPlan.fields && childPlan.fields.length > 0) {
-          populateOptions.select = childPlan.fields.join(" ");
+        if (typedChildPlan.fields && typedChildPlan.fields.length > 0) {
+          populateOptions.select = typedChildPlan.fields.join(" ");
         }
 
         mQuery = mQuery.populate(populateOptions) as unknown as Q;

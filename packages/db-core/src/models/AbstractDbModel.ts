@@ -1,17 +1,22 @@
-import { AbstractDataModel } from '@meta/validation-core';
-import type { IDatabaseAdapter } from '../adapters/IDatabaseAdapter';
-import { DataQueryPlan, QueryCriteria } from '../types';
+import { AbstractStatelessDataModel } from "@meta/validation-core";
+import type { IDatabaseAdapter } from "../adapters/IDatabaseAdapter";
+import { DataQueryPlan, QueryCriteria } from "../types";
 
 export abstract class AbstractDbModel<
   TEntity extends Record<string, any>,
   TSelect extends Record<string, any>,
   TInsert extends Record<string, any> = TSelect,
   TUpdate extends Record<string, any> = Partial<TInsert>,
-  TRawClient = unknown
-> extends AbstractDataModel<TSelect> {
-
+  TRawClient = unknown,
+> extends AbstractStatelessDataModel<TSelect> {
   constructor(
-    protected readonly adapter: IDatabaseAdapter<TEntity, TSelect, TInsert, TUpdate, TRawClient>
+    protected readonly adapter: IDatabaseAdapter<
+      TEntity,
+      TSelect,
+      TInsert,
+      TUpdate,
+      TRawClient
+    >,
   ) {
     super();
   }

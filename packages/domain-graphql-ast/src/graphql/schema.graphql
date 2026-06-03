@@ -19,6 +19,32 @@ type BenchmarkResult {
   data: [Article!]!
 }
 
+type AstResult {
+  id: ID!
+  visitorId: ID
+  scenario: String!
+  endpoint: String!
+  databaseType: DatabaseType!
+  queriedFields: [String!]!
+  queriedRelations: [String!]!
+  requestCount: Int!
+  avgLatencyMs: Int!
+  payloadSizeKb: Float!
+  createdAt: String
+}
+
+input SubmitAstResultInput {
+  visitorId: ID
+  scenario: String!
+  endpoint: String!
+  databaseType: DatabaseType!
+  queriedFields: [String!]!
+  queriedRelations: [String!]!
+  requestCount: Int!
+  avgLatencyMs: Int!
+  payloadSizeKb: Float!
+}
+
 enum DatabaseType {
   POSTGRES
   MONGO
@@ -27,4 +53,8 @@ enum DatabaseType {
 type Query {
   getArticlesLazy(dbType: DatabaseType!): BenchmarkResult!
   getArticlesOptimized(dbType: DatabaseType!): BenchmarkResult!
+}
+
+type Mutation {
+  submitAstResult(input: SubmitAstResultInput!): AstResult!
 }

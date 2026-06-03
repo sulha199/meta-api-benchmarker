@@ -1,4 +1,7 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger, Card } from "@repo/ui";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui";
+import { LazyTrapTab } from "./tabs/LazyTrapTab";
+import { IndexedSearchTab } from "./tabs/IndexedSearchTab";
+import { DeepIndexTab } from "./tabs/DeepIndexTab";
 
 export function GraphqlAstPage() {
   return (
@@ -18,24 +21,15 @@ export function GraphqlAstPage() {
         </TabsList>
 
         <TabsContent value="lazy">
-          <Card className="p-6 shadow-sm">
-            <h3 className="font-semibold text-lg mb-4">Lazy Query vs AST Parsed</h3>
-            <p className="text-zinc-500">Test UI dropping here shortly...</p>
-          </Card>
+          <LazyTrapTab />
         </TabsContent>
 
         <TabsContent value="indexed">
-          <Card className="p-6 shadow-sm">
-            <h3 className="font-semibold text-lg mb-4">Full Table Scan vs Indexed</h3>
-            <p className="text-zinc-500">Test UI dropping here shortly...</p>
-          </Card>
+          <IndexedSearchTab />
         </TabsContent>
 
         <TabsContent value="premium">
-          <Card className="p-6 shadow-sm">
-            <h3 className="font-semibold text-lg mb-4">Advanced Architecture Test</h3>
-            <p className="text-zinc-500">Requires GitHub Auth to unlock.</p>
-          </Card>
+          <DeepIndexTab />
         </TabsContent>
       </Tabs>
     </div>

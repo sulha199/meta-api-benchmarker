@@ -120,7 +120,7 @@ export class DrizzleAdapter<
       for (const [relationName, childPlan] of Object.entries(plan.relations)) {
         if (childPlan) {
           // Recursive compilation for deeply nested relations
-          config.with[relationName] = this.buildDrizzleConfig(childPlan);
+          config.with[relationName] = this.buildDrizzleConfig(childPlan as any);
         }
       }
     }

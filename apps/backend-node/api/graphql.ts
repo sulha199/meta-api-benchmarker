@@ -16,6 +16,7 @@ import {
   DrizzleArticleRepository,
   DrizzleBenchmarkRepository,
   DrizzleVisitorRepository,
+  DrizzleAstResultRepository,
   allSchema as drizzleSchema, // Your combined Drizzle schemas
 } from "@repo/adapter-drizzle";
 import { MongoArticleRepository } from "@repo/adapter-mongo";
@@ -46,6 +47,7 @@ const db = useNeonHttp
 
 const postgresArticleRepo = new DrizzleArticleRepository(db as any);
 const postgresVisitorRepo = new DrizzleVisitorRepository(db as any);
+const postgresAstResultRepo = new DrizzleAstResultRepository(db as any);
 const postgresApiTopologyRepo = new ApiTopologiRepositoryImpl(
   new DrizzleBenchmarkRepository(db as any),
 );
@@ -147,6 +149,9 @@ const apolloHandler = startServerAndCreateNextHandler(server as any, {
       articles: {
         postgres: postgresArticleRepo,
         mongo: mongoArticleRepo,
+      },
+      results: {
+        postgres: postgresAstResultRepo,
       },
       visitors: {
         postgres: postgresVisitorRepo,

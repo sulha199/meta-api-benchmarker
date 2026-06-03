@@ -19,7 +19,15 @@ This feature compares two specific data-fetching strategies using the `@repo/dom
 - **The `DataQueryPlan`:** The `@repo/graphql-utils` package translates the AST into a strict JSON tree of requested fields and relations.
 - **The Execution:** The database adapters (`@repo/adapter-drizzle` / `@repo/adapter-mongo`) natively compile this plan into a single, exact query. It fetches _only_ the bytes requested.
 
-## 3. Core Metrics & Terminology
+## 3. Benchmark Sweeps
+
+To establish a baseline cost per property, the system implements a **Single-Property Sweep**:
+
+- It sequentially requests individual scalar fields (e.g., `title`, `contentBody`) and individual relations (e.g., `comments { id }`).
+- It tests these across both `getArticlesLazy` and `getArticlesOptimized` endpoints.
+- Results are persisted to the `ast_results` table, tracking the specific `endpoint`, `queriedFields`, and `queriedRelations`.
+
+## 4. Core Metrics & Terminology
 
 - **Query Complexity Score:** A numeric value representing the weight of a query, calculated by adding the number of explicitly requested scalar fields plus the number of nested relations.
 - **Useful Data:** The bytes explicitly requested by the client's GraphQL query.

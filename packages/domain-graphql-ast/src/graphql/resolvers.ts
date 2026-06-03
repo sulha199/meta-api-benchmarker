@@ -61,4 +61,28 @@ export const resolvers: Resolvers = {
       return { latencyMs, payloadSizeKb, data };
     },
   },
+  Mutation: {
+    submitAstResult: async (_, { input }, context) => {
+      const repository = context.repositories.results.postgres;
+      if (!repository)
+        throw new Error("AST Result repository is not initialized.");
+
+      const result = await repository.create({
+        visitorId: input.visitorId,
+        scenario: input.scenario,
+        endpoint: input.endpoint,
+        databaseType: input.databaseType as "POSTGRES" | "MONGO",
+        queriedFields: [...input.queriedFields],
+        queriedRelations: [...input.queriedRelations],
+        requestCount: input.requestCount,
+        avgLatencyMs: input.avgLatencyMs,
+        payloadSizeKb: input.payloadSizeKb,
+      });
+
+      return {
+        ...result,
+        databaseType: result.databaseType as DatabaseType,
+      };
+    },
+  },
 };

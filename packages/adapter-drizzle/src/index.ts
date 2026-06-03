@@ -6,4 +6,5 @@ export { AbstractDrizzlePgRepository } from "./repositories/AbstractDrizzleRepos
 export { DrizzleArticleRepository } from "./repositories/DrizzleArticleRepository";
 export { DrizzleVisitorRepository } from "./repositories/DrizzleVisitorRepository";
 export { DrizzleBenchmarkRepository } from "./repositories/DrizzleBenchmarkRepository";
+export { DrizzleAstResultRepository } from "./repositories/DrizzleAstResultRepository";
 export { allSchema } from "./schema"; // Re-export the combined Drizzle schema

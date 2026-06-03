@@ -21,6 +21,21 @@ export type Article = {
   title: Scalars['String']['output'];
 };
 
+export type AstResult = {
+  __typename?: 'AstResult';
+  avgLatencyMs: Scalars['Int']['output'];
+  createdAt?: Maybe<Scalars['String']['output']>;
+  databaseType: DatabaseType;
+  endpoint: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  payloadSizeKb: Scalars['Float']['output'];
+  queriedFields: Array<Scalars['String']['output']>;
+  queriedRelations: Array<Scalars['String']['output']>;
+  requestCount: Scalars['Int']['output'];
+  scenario: Scalars['String']['output'];
+  visitorId?: Maybe<Scalars['ID']['output']>;
+};
+
 export type BenchmarkResult = {
   __typename?: 'BenchmarkResult';
   data: Array<Article>;
@@ -41,6 +56,16 @@ export enum DatabaseType {
   Postgres = 'POSTGRES'
 }
 
+export type Mutation = {
+  __typename?: 'Mutation';
+  submitAstResult: AstResult;
+};
+
+
+export type MutationSubmitAstResultArgs = {
+  input: SubmitAstResultInput;
+};
+
 export type Query = {
   __typename?: 'Query';
   getArticlesLazy: BenchmarkResult;
@@ -55,6 +80,18 @@ export type QueryGetArticlesLazyArgs = {
 
 export type QueryGetArticlesOptimizedArgs = {
   dbType: DatabaseType;
+};
+
+export type SubmitAstResultInput = {
+  avgLatencyMs: Scalars['Int']['input'];
+  databaseType: DatabaseType;
+  endpoint: Scalars['String']['input'];
+  payloadSizeKb: Scalars['Float']['input'];
+  queriedFields: Array<Scalars['String']['input']>;
+  queriedRelations: Array<Scalars['String']['input']>;
+  requestCount: Scalars['Int']['input'];
+  scenario: Scalars['String']['input'];
+  visitorId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -132,6 +169,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   Article: ResolverTypeWrapper<Article>;
+  AstResult: ResolverTypeWrapper<AstResult>;
   BenchmarkResult: ResolverTypeWrapper<BenchmarkResult>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Comment: ResolverTypeWrapper<Comment>;
@@ -139,21 +177,26 @@ export type ResolversTypes = ResolversObject<{
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  SubmitAstResultInput: SubmitAstResultInput;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   Article: Article;
+  AstResult: AstResult;
   BenchmarkResult: BenchmarkResult;
   Boolean: Scalars['Boolean']['output'];
   Comment: Comment;
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
+  Mutation: Record<PropertyKey, never>;
   Query: Record<PropertyKey, never>;
   String: Scalars['String']['output'];
+  SubmitAstResultInput: SubmitAstResultInput;
 }>;
 
 export type ArticleResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Article'] = ResolversParentTypes['Article']> = ResolversObject<{
@@ -162,6 +205,20 @@ export type ArticleResolvers<ContextType = GraphQLContext, ParentType extends Re
   createdAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+}>;
+
+export type AstResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['AstResult'] = ResolversParentTypes['AstResult']> = ResolversObject<{
+  avgLatencyMs?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  createdAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  databaseType?: Resolver<ResolversTypes['DatabaseType'], ParentType, ContextType>;
+  endpoint?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  payloadSizeKb?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  queriedFields?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  queriedRelations?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  requestCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  scenario?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  visitorId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
 }>;
 
 export type BenchmarkResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['BenchmarkResult'] = ResolversParentTypes['BenchmarkResult']> = ResolversObject<{
@@ -177,6 +234,10 @@ export type CommentResolvers<ContextType = GraphQLContext, ParentType extends Re
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 }>;
 
+export type MutationResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  submitAstResult?: Resolver<ResolversTypes['AstResult'], ParentType, ContextType, RequireFields<MutationSubmitAstResultArgs, 'input'>>;
+}>;
+
 export type QueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   getArticlesLazy?: Resolver<ResolversTypes['BenchmarkResult'], ParentType, ContextType, RequireFields<QueryGetArticlesLazyArgs, 'dbType'>>;
   getArticlesOptimized?: Resolver<ResolversTypes['BenchmarkResult'], ParentType, ContextType, RequireFields<QueryGetArticlesOptimizedArgs, 'dbType'>>;
@@ -184,8 +245,10 @@ export type QueryResolvers<ContextType = GraphQLContext, ParentType extends Reso
 
 export type Resolvers<ContextType = GraphQLContext> = ResolversObject<{
   Article?: ArticleResolvers<ContextType>;
+  AstResult?: AstResultResolvers<ContextType>;
   BenchmarkResult?: BenchmarkResultResolvers<ContextType>;
   Comment?: CommentResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
 }>;
 

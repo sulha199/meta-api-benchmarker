@@ -59,3 +59,16 @@ export type ValueTransformer<T> =
         valueBeforeTransformers: T | undefined,
       ) => Promise<T>;
     };
+
+export interface DataModelTransformerConfig<T extends Record<string, any>> {
+  beforeValidate?: {
+    [P in Path<T>]?: ((value: PathValue<T, P>) => Promise<PathValue<T, P>>)[];
+  };
+  afterValidate?: {
+    [P in Path<T>]?: ((
+      value: PathValue<T, P>,
+      result: ValidationResult,
+      originalValue: PathValue<T, P>,
+    ) => Promise<PathValue<T, P>>)[];
+  };
+}
