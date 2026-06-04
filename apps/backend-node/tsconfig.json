@@ -3,7 +3,8 @@
   "compilerOptions": {
     /* Set to NodeNext for modern Node.js ESM support */
 
-    "module": "CommonJS",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "noEmit": true,
 
     "outDir": "./dist",

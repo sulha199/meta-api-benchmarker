@@ -10,14 +10,14 @@
         "development": "./src/index.ts",
         "default": "./dist/index.js"
       },
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     }
   },
   "scripts": {
     "generate": "drizzle-kit generate",
     "push": "drizzle-kit push",
     "seed": "tsx src/seed.ts",
-    "build": "tsc && tsc-alias",
+    "build": "node ../../scripts/build.mjs && tsc -p tsconfig.build.json",
     "dev": "tsc --watch"
   },
   "dependencies": {
@@ -35,7 +35,6 @@
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "postgres": "^3.4.9",
-    "tsc-alias": "^1.8.17",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   },

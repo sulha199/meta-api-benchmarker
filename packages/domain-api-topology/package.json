@@ -9,7 +9,7 @@
         "development": "./src/index.ts",
         "default": "./dist/index.js"
       },
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     },
     "./schema": {
       "types": "./dist/graphql/schema.d.ts",
@@ -22,7 +22,7 @@
   },
   "scripts": {
     "generate": "graphql-codegen",
-    "build": "pnpm run generate && tsc  && node ../../scripts/copy-schema.cjs",
+    "build": "pnpm run generate && node ../../scripts/build.mjs && tsc -p tsconfig.build.json && node ../../scripts/copy-schema.cjs",
     "dev": "tsc --watch"
   },
   "dependencies": {

@@ -10,12 +10,12 @@
         "development": "./src/index.ts",
         "default": "./dist/index.js"
       },
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     }
   },
   "scripts": {
     "seed": "tsx src/seed.ts",
-    "build": "tsc",
+    "build": "node ../../scripts/build.mjs && tsc -p tsconfig.build.json",
     "dev": "tsc --watch"
   },
   "dependencies": {
