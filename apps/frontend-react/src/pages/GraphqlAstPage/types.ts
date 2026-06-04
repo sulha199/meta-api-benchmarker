@@ -6,6 +6,7 @@ export type PropertyTarget = {
 };
 
 export type SweepResult = PropertyTarget & {
+  dbType: string;
   endpoint: "getArticlesOptimized" | "getArticlesLazy";
   backendLatency: number;
   totalLatency: number;

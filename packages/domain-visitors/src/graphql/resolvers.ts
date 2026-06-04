@@ -7,7 +7,6 @@ export const resolvers: Resolvers = {
       const repository = context.repositories.visitors.postgres; // Now correctly typed
       return repository.findById(id);
     },
-    ping: () => "Pong! Competitor A is ready.",
   },
   Mutation: {
     registerVisitor: async (_, { id, rawEmail }, context) => {

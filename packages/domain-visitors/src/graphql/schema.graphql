@@ -16,7 +16,6 @@ type Visitor {
 
 extend type Query {
   getVisitor(id: ID!): Visitor
-  ping: String!
 }
 
 extend type Mutation {

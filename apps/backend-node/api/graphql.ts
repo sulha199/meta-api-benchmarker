@@ -10,6 +10,7 @@ import { neon } from "@neondatabase/serverless";
 import postgres from "postgres";
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
+import { sql } from "drizzle-orm";
 
 // 1. Import Infrastructure Adapters
 import {
@@ -58,13 +59,13 @@ type MongooseGlobal = typeof globalThis & {
 
 const mongooseGlobal = globalThis as MongooseGlobal;
 
-async function ensureMongoose(): Promise<void> {
+async function ensureMongoose() {
   const uri = process.env.MONGO_URI;
   if (!uri) {
     throw new Error("Missing MONGO_URI environment variable.");
   }
   if (mongoose.connection.readyState === 1) {
-    return;
+    return mongoose.connection.db!;
   }
   if (!mongooseGlobal.__mongooseConn) {
     mongooseGlobal.__mongooseConn = { promise: null };
@@ -78,6 +79,7 @@ async function ensureMongoose(): Promise<void> {
       });
   }
   await mongooseGlobal.__mongooseConn.promise;
+  return mongoose.connection.db!;
 }
 
 const mongoArticleRepo = new MongoArticleRepository();
@@ -93,6 +95,7 @@ const typeDefs = [
   `
   type Query {
     _empty: String
+    ping: String!
   }
 
   type Mutation {
@@ -110,6 +113,23 @@ const typeDefs = [
  */
 const resolvers = {
   Query: {
+    ping: async () => {
+      // 1. Wake up Postgres
+      try {
+        await (db as any).execute(sql`SELECT 1`);
+      } catch (err) {
+        console.error("Postgres ping failed:", err);
+      }
+
+      // 2. Wake up MongoDB
+      try {
+        (await ensureMongoose()).admin().ping();
+      } catch (err) {
+        console.error("MongoDB ping failed:", err);
+      }
+
+      return "Pong! Competitor A (Node.js) and DB's are ready.";
+    },
     ...articleGraphql.resolvers.Query,
     ...visitorGraphql.resolvers.Query,
     ...topologyGraphql.resolvers.Query,

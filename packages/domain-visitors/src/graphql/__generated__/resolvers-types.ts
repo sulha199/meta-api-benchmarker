@@ -39,7 +39,6 @@ export type MutationUpdateVisitorArgs = {
 export type Query = {
   __typename?: 'Query';
   getVisitor?: Maybe<Visitor>;
-  ping: Scalars['String']['output'];
 };
 
 
@@ -166,7 +165,6 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
 
 export type QueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   getVisitor?: Resolver<Maybe<ResolversTypes['Visitor']>, ParentType, ContextType, RequireFields<QueryGetVisitorArgs, 'id'>>;
-  ping?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 }>;
 
 export type VisitLogResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['VisitLog'] = ResolversParentTypes['VisitLog']> = ResolversObject<{

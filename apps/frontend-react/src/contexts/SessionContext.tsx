@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { appStorage } from "../utils/storage";
-import { registerNodeJsVisitor, registerSupabaseVisitor } from "../utils/visitor";
+import {
+  registerNodeJsVisitor,
+  registerSupabaseVisitor,
+} from "../utils/visitor";
+import { NODE_GRAPHQL_URL, NODE_HEADERS } from "../config/constants";
 
 interface SessionContextType {
   visitorId: string;
@@ -8,11 +12,14 @@ interface SessionContextType {
   isInitializing: boolean;
   registerVisitor: () => Promise<void>;
   resetSession: () => Promise<void>;
+  pingBackend: () => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
-export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [visitorId, setVisitorId] = useState<string>("");
   const [isRegistered, setIsRegistered] = useState<boolean>(false);
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
@@ -20,7 +27,10 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const initializeSession = async () => {
       try {
-        const storedRegStatus = await appStorage.get("meta_is_registered", false);
+        const storedRegStatus = await appStorage.get(
+          "meta_is_registered",
+          false,
+        );
         setIsRegistered(storedRegStatus || false);
 
         let storedId = await appStorage.get("meta_visitor_id");
@@ -57,6 +67,23 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const pingBackend = async () => {
+    try {
+      console.log("Pinging backend to wake up databases...");
+      const response = await fetch(NODE_GRAPHQL_URL, {
+        method: "POST",
+        headers: NODE_HEADERS,
+        body: JSON.stringify({
+          query: "query { ping }",
+        }),
+      });
+      const json = await response.json();
+      console.log("Backend response:", json.data?.ping);
+    } catch (error) {
+      console.error("Failed to ping backend:", error);
+    }
+  };
+
   const resetSession = async () => {
     await appStorage.remove("meta_visitor_id");
     await appStorage.remove("meta_is_registered");
@@ -72,6 +99,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isInitializing,
         registerVisitor,
         resetSession,
+        pingBackend,
       }}
     >
       {children}

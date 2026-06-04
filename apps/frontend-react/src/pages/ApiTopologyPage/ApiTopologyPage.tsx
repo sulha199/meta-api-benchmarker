@@ -19,6 +19,7 @@ export function ApiTopologyPage() {
     isInitializing,
     registerVisitor,
     resetSession,
+    pingBackend,
   } = useSession();
 
   // Benchmark State
@@ -67,6 +68,9 @@ export function ApiTopologyPage() {
       console.warn("A benchmark is already running!");
       return;
     }
+
+    // Wake up databases before the race
+    await pingBackend();
 
     if (!isRegistered) {
       try {

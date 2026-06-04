@@ -42,7 +42,8 @@ const SWEEP_TARGETS: PropertyTarget[] = [
 ];
 
 export function LazyTrapTab() {
-  const { visitorId, isRegistered, registerVisitor } = useSession();
+  const { visitorId, isRegistered, registerVisitor, pingBackend } =
+    useSession();
   const [dbType, setDbType] = useState<"POSTGRES" | "MONGO">("POSTGRES");
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<SweepResult[]>([]);
@@ -50,6 +51,9 @@ export function LazyTrapTab() {
   const runSweep = async () => {
     setIsRunning(true);
     setResults([]);
+
+    // Wake up databases before the sweep
+    await pingBackend();
 
     if (!isRegistered) {
       try {
@@ -92,6 +96,7 @@ export function LazyTrapTab() {
 
           const sweepResult: SweepResult = {
             ...target,
+            dbType,
             endpoint,
             backendLatency: data.latencyMs,
             totalLatency,
@@ -176,7 +181,8 @@ export function LazyTrapTab() {
               </div>
             </div>
             <div className="flex justify-between text-xs text-zinc-500">
-              <span>Latency: {res.totalLatency}ms</span>
+              <span>Total Latency: {res.totalLatency}ms</span>
+              <span>Backend Latency: {res.backendLatency}ms</span>
               <span>Size: {res.payloadSize}KB</span>
             </div>
 
