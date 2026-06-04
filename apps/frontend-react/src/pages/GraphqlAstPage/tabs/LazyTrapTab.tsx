@@ -48,7 +48,7 @@ export function LazyTrapTab() {
     useSession();
   const [selectedDbTypes, setSelectedDbTypes] = useState<
     ("POSTGRES" | "MONGO")[]
-  >(["POSTGRES"]);
+  >(["POSTGRES", "MONGO"]);
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<SweepResult[]>([]);
 
@@ -157,7 +157,7 @@ export function LazyTrapTab() {
 
   return (
     <Card className="p-6 shadow-sm space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h3 className="font-semibold text-lg">
             Single-Property Benchmark Sweep
@@ -167,7 +167,7 @@ export function LazyTrapTab() {
             baseline.
           </p>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
           <div className="flex gap-4">
             <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
               <input
@@ -193,13 +193,20 @@ export function LazyTrapTab() {
           <Button
             onClick={runSweep}
             disabled={isRunning || selectedDbTypes.length === 0}
+            className="w-full sm:w-auto"
           >
             {isRunning ? "Running Sweep..." : "Start Sweep"}
           </Button>
         </div>
       </div>
 
-      {results.length > 0 && <GraphqlAstChart results={results} />}
+      {results.length > 0 && (
+        <div className="overflow-x-auto">
+          <div className="min-w-[600px] md:min-w-0">
+            <GraphqlAstChart results={results} />
+          </div>
+        </div>
+      )}
 
       {results.length > 0 && <GraphqlAstTable results={results} />}
     </Card>

@@ -7,8 +7,12 @@ export function GraphqlAstPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">GraphQL AST Optimization</h2>
-        <p className="text-zinc-500 mt-2">PostgreSQL TOAST vs. MongoDB Embedded Documents</p>
+        <h2 className="text-3xl font-bold tracking-tight">
+          GraphQL AST Optimization
+        </h2>
+        <p className="text-zinc-500 mt-2">
+          PostgreSQL TOAST vs. MongoDB Embedded Documents
+        </p>
       </div>
 
       <Tabs defaultValue="lazy" className="w-full">
@@ -20,15 +24,15 @@ export function GraphqlAstPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="lazy">
+        <TabsContent forceMount value="lazy">
           <LazyTrapTab />
         </TabsContent>
 
-        <TabsContent value="indexed">
+        <TabsContent forceMount value="indexed">
           <IndexedSearchTab />
         </TabsContent>
 
-        <TabsContent value="premium">
+        <TabsContent forceMount value="premium">
           <DeepIndexTab />
         </TabsContent>
       </Tabs>
