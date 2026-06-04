@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, Button } from "@repo/ui";
 import { NODE_GRAPHQL_URL, NODE_HEADERS } from "../../../config/constants";
 import { useSession } from "../../../contexts/SessionContext";
+import { GraphqlAstChart } from "../components/GraphqlAstChart";
 import type {
   PropertyTarget,
   SweepResult,
@@ -44,9 +45,17 @@ const SWEEP_TARGETS: PropertyTarget[] = [
 export function LazyTrapTab() {
   const { visitorId, isRegistered, registerVisitor, pingBackend } =
     useSession();
-  const [dbType, setDbType] = useState<"POSTGRES" | "MONGO">("POSTGRES");
+  const [selectedDbTypes, setSelectedDbTypes] = useState<
+    ("POSTGRES" | "MONGO")[]
+  >(["POSTGRES"]);
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<SweepResult[]>([]);
+
+  const toggleDbType = (type: "POSTGRES" | "MONGO") => {
+    setSelectedDbTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
+    );
+  };
 
   const runSweep = async () => {
     setIsRunning(true);
@@ -67,15 +76,16 @@ export function LazyTrapTab() {
 
     const endpoints = ["getArticlesOptimized", "getArticlesLazy"] as const;
 
-    for (const target of SWEEP_TARGETS) {
-      for (const endpoint of endpoints) {
-        const startTime = performance.now();
-        try {
-          const response = await fetch(NODE_GRAPHQL_URL, {
-            method: "POST",
-            headers: NODE_HEADERS,
-            body: JSON.stringify({
-              query: `
+    for (const dbType of selectedDbTypes) {
+      for (const target of SWEEP_TARGETS) {
+        for (const endpoint of endpoints) {
+          const startTime = performance.now();
+          try {
+            const response = await fetch(NODE_GRAPHQL_URL, {
+              method: "POST",
+              headers: NODE_HEADERS,
+              body: JSON.stringify({
+                query: `
                 query GetArticles($dbType: DatabaseType!) {
                   ${endpoint}(dbType: $dbType) {
                     latencyMs
@@ -86,57 +96,58 @@ export function LazyTrapTab() {
                   }
                 }
               `,
-              variables: { dbType },
-            }),
-          });
+                variables: { dbType },
+              }),
+            });
 
-          const json = await response.json();
-          const data = json.data[endpoint] as GraphqlBenchmarkResponse;
-          const totalLatency = Math.round(performance.now() - startTime);
+            const json = await response.json();
+            const data = json.data[endpoint] as GraphqlBenchmarkResponse;
+            const totalLatency = Math.round(performance.now() - startTime);
 
-          const sweepResult: SweepResult = {
-            ...target,
-            dbType,
-            endpoint,
-            backendLatency: data.latencyMs,
-            totalLatency,
-            payloadSize: data.payloadSizeKb,
-          };
+            const sweepResult: SweepResult = {
+              ...target,
+              dbType,
+              endpoint,
+              backendLatency: data.latencyMs,
+              totalLatency,
+              payloadSize: data.payloadSizeKb,
+            };
 
-          setResults((prev) => [...prev, sweepResult]);
+            setResults((prev) => [...prev, sweepResult]);
 
-          // Submit result to database
-          await fetch(NODE_GRAPHQL_URL, {
-            method: "POST",
-            headers: NODE_HEADERS,
-            body: JSON.stringify({
-              query: `
+            // Submit result to database
+            await fetch(NODE_GRAPHQL_URL, {
+              method: "POST",
+              headers: NODE_HEADERS,
+              body: JSON.stringify({
+                query: `
                 mutation SubmitAstResult($input: SubmitAstResultInput!) {
                   submitAstResult(input: $input) {
                     id
                   }
                 }
               `,
-              variables: {
-                input: {
-                  visitorId,
-                  scenario: "PROPERTY_SWEEP",
-                  endpoint,
-                  databaseType: dbType,
-                  queriedFields: target.fields,
-                  queriedRelations: target.relations,
-                  requestCount: 1,
-                  avgLatencyMs: totalLatency,
-                  payloadSizeKb: data.payloadSizeKb,
+                variables: {
+                  input: {
+                    visitorId,
+                    scenario: "PROPERTY_SWEEP",
+                    endpoint,
+                    databaseType: dbType,
+                    queriedFields: target.fields,
+                    queriedRelations: target.relations,
+                    requestCount: 1,
+                    avgLatencyMs: totalLatency,
+                    payloadSizeKb: data.payloadSizeKb,
+                  },
                 },
-              },
-            }),
-          });
-        } catch (error) {
-          console.error(
-            `Sweep failed for target: ${target.label} (${endpoint})`,
-            error,
-          );
+              }),
+            });
+          } catch (error) {
+            console.error(
+              `Sweep failed for target: ${target.label} (${endpoint})`,
+              error,
+            );
+          }
         }
       }
     }
@@ -155,29 +166,52 @@ export function LazyTrapTab() {
             baseline.
           </p>
         </div>
-        <div className="flex gap-2">
-          <select
-            className="border rounded px-2 py-1 text-sm bg-white"
-            value={dbType}
-            onChange={(e) => setDbType(e.target.value as any)}
-            disabled={isRunning}
+        <div className="flex items-center gap-6">
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={selectedDbTypes.includes("POSTGRES")}
+                onChange={() => toggleDbType("POSTGRES")}
+                disabled={isRunning}
+                className="w-4 h-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+              />
+              PostgreSQL
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={selectedDbTypes.includes("MONGO")}
+                onChange={() => toggleDbType("MONGO")}
+                disabled={isRunning}
+                className="w-4 h-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+              />
+              MongoDB
+            </label>
+          </div>
+          <Button
+            onClick={runSweep}
+            disabled={isRunning || selectedDbTypes.length === 0}
           >
-            <option value="POSTGRES">PostgreSQL</option>
-            <option value="MONGO">MongoDB</option>
-          </select>
-          <Button onClick={runSweep} disabled={isRunning}>
             {isRunning ? "Running Sweep..." : "Start Sweep"}
           </Button>
         </div>
       </div>
+
+      {results.length > 0 && <GraphqlAstChart results={results} />}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {results.map((res, i) => (
           <div key={i} className="border rounded p-3 bg-zinc-50 space-y-1">
             <div className="flex justify-between items-start">
               <div className="font-medium text-sm">{res.label}</div>
-              <div className="text-[10px] uppercase font-bold text-zinc-400 bg-white border px-1.5 py-0.5 rounded">
-                {res.endpoint.replace("getArticles", "")}
+              <div className="flex gap-1.5">
+                <div className="text-[10px] uppercase font-bold text-zinc-400 bg-white border px-1.5 py-0.5 rounded">
+                  {res.dbType}
+                </div>
+                <div className="text-[10px] uppercase font-bold text-zinc-400 bg-white border px-1.5 py-0.5 rounded">
+                  {res.endpoint.replace("getArticles", "")}
+                </div>
               </div>
             </div>
             <div className="flex justify-between text-xs text-zinc-500">
