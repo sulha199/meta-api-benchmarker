@@ -17,15 +17,15 @@
     "generate": "drizzle-kit generate",
     "push": "drizzle-kit push",
     "seed": "tsx src/seed.ts",
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@repo/shared-common": "workspace:*",
     "@repo/db-core": "workspace:*",
+    "@repo/domain-api-topology": "workspace:*",
     "@repo/domain-graphql-ast": "workspace:*",
     "@repo/domain-visitors": "workspace:*",
-    "@repo/domain-api-topology": "workspace:*",
+    "@repo/shared-common": "workspace:*",
     "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
@@ -35,6 +35,7 @@
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "postgres": "^3.4.9",
+    "tsc-alias": "^1.8.17",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   },
