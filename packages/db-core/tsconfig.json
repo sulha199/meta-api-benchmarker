@@ -10,10 +10,9 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
   },
-  "include": [
-    "src"
-  ],
-  "extends": "../typescript-config/base.json"
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"],
+  "extends": "../typescript-config/base.json",
 }

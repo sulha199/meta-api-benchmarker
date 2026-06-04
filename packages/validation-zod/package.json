@@ -2,6 +2,7 @@
   "name": "@repo/validation-zod",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -9,7 +10,7 @@
         "development": "./src/index.ts",
         "default": "./dist/index.js"
       },
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     }
   },
   "dependencies": {
@@ -28,7 +29,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "node ../../scripts/build.mjs && tsc -p tsconfig.build.json",
     "dev": "tsc --watch"
   }
 }

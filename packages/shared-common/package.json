@@ -9,7 +9,7 @@
         "development": "./src/index.ts",
         "default": "./dist/index.js"
       },
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     }
   },
   "main": "./dist/index.js",
@@ -17,7 +17,7 @@
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit",
-    "build": "tsc",
+    "build": "node ../../scripts/build.mjs && tsc -p tsconfig.build.json",
     "dev": "tsc --watch"
   },
   "devDependencies": {

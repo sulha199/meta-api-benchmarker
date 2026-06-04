@@ -10,7 +10,7 @@
         "development": "./src/index.ts",
         "default": "./dist/index.js"
       },
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     },
     "./models": {
       "types": "./dist/models/index.d.ts",
@@ -18,7 +18,7 @@
         "development": "./src/models/index.ts",
         "default": "./dist/models/index.js"
       },
-      "require": "./dist/models/index.js"
+      "require": "./dist/models/index.cjs"
     },
     "./adapters": {
       "types": "./dist/adapters/index.d.ts",
@@ -26,12 +26,12 @@
         "development": "./src/adapters/index.ts",
         "default": "./dist/adapters/index.js"
       },
-      "require": "./dist/adapters/index.js"
+      "require": "./dist/adapters/index.cjs"
     }
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
+    "build": "node ../../scripts/build.mjs && tsc -p tsconfig.build.json",
     "dev": "tsc --watch"
   },
   "dependencies": {
